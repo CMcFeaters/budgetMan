@@ -1,56 +1,49 @@
 '''
-idea_tables
+budg_tables
 this contains all of the setup data for the tables
 '''
-from sqlalchemy import ForeignKey, Column, Integer, String
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy import Column, Integer, String, Date, Boolean, Float
+#from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 Base=declarative_base()
 
-class User(Base):
-	'''the user class'''
-	__tablename__='users'
+class Expense(Base):
+	'''expenses class'''
+	
+	__tablename__='expenses'
 	
 	id=Column(Integer,primary_key=True)
-	username=Column(String)
-	password=Column(String)
-	ideas=relationship("Idea", backref="users", cascade="all, delete-orphan") #this is the link to the idea table
+	name=Column(String)			#name of the payment
+	recurring=Column(Boolean)	#is this a recurring payment or 1 time
+	due=Column(Date)			#the due date of the (first) payment
+	cycle=Column(String)		#change to somethign else.  This is used to pickup this payment every occurence
+	fixed=Column(Boolean)		#is the amount being paid fixed
+	amount=Column(Float)			#this is the amount paid
+	estimated=Column(Float)		#this is the amount estimated (for varible payments)
+	credit=Column(Boolean)		#true added to card, false subtracted from bank account
 	
-	def __init__(self,username,password):
-		self.username=username.lower()
-		self.password=password#this is something you could do some security work with
-	
-	def __repr__(self):
-		#print portion
-		return "User Id: %s \n UserName: %s \n Password: %s"%(self.id, self.username,self.password)
+	def __init__(self,name,recurring,due,cycle,fixed,amount,estimated,credit):
+		'''creates the expense'''
+		self.name=name
+		self.recurring=recurring
 		
-	
-
-class Idea(Base):
-	'''the ideas table'''
-	#each idea in the tableis linked back to a specific user using their ID as a foreign key
-	__tablename__='ideas'
-	
-	id=Column(Integer,primary_key=True)
-	
-	user_id=Column(Integer,ForeignKey('users.id'))
-	title=Column(String(20))
-	idea=Column(String)
-	tags=Column(String)
-	
-	def __init__(self,user_id,title,idea,tags):
-		self.user_id=user_id
-		self.title=title.lower()
-		self.idea=idea
-		self.tags=tags
-	
-	def addTag(self,tag):
-		#adds a tag to the self.tag string, separated with a comma
-		if self.tags=="":
-			self.tags=tag
+		if self.recurring:	#recurring schedule
+			self.cycle=cycle
 		else:
-			self.tags=str(self.tags)+" , "+tag
+			self.cycle="N/A"
 		
-	def __repr__(self):
-		return "Title: %s\nIdea:\n%s\nTags: %s"%(self.title,self.idea,self.tags)
+		self.due=due
+		self.fixed=fixed
+		self.amount=amount
+		if self.fixed:
+			self.estimated=estimated
+		else:
+			self.fixed=-1
+
+		self.credit=credit
+		
+	def __init__(self):
+		return "Name: %s \n Due: %s \n Recurring: %s \n Cycle: %s \n Fixed: %s \n Amount: %s \
+		\n Estimated: %s \n Credit: %s"%(self.name, self.due,self.recurring,self.cycle,self.fixed, 
+		self.amount, self.esimated, self.credit)
 		
