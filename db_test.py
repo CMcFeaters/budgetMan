@@ -5,16 +5,18 @@
 #create an entry
 try:
 	print "Attempting Importing"
-	import sys, string, random, os, idea_box
+	import sys, string, random, os, budg_main
 	
-	from idea_tables import Idea, User
+	from budg_tables import Expense
 	
-	from idea_box import path as impPath
+	from budg_main import path as impPath
 	sys.path.append("C:\\Users\Charles\Dropbox\Programming\py\general_use")
 	from error_classes import stdException
 	from conversion import timeConv
 	from random_tools import id_generator
 	from sqlalchemy import and_,or_
+	from datetime import date
+	
 except:
 	print "Importing Failed"
 	raise 
@@ -30,6 +32,7 @@ def deleteDB():
 			print "file found"
 			print "Last accessed: "+timeConv(os.path.getatime(impPath))
 			os.remove(impPath)
+			print "Deleted: %s"%impPath
 	except:
 		print "Database deletion Failed"
 	else:
@@ -40,30 +43,27 @@ def createDB():
 	#create the new database and session
 	try:
 		print "Attempting Database Creation"
-		session=idea_box.createAll()
+		session=budg_main.createAll()
 		session.close()
 	except:
 		print "Database creation Failed"
 	else:
 		print "Database create Complete"
 
-def createTestDB():
+def testEntries_Expense():
 	#a function to quickly fill out a DB in case of deletion, used for testing
-	#2 users
-	#each user has 10 ideas
-	session=idea_box.createAll()
-	session.add(User("Chuck","FUCKYOUGAYPASSWORDRULES"))
-	session.add(User("Charles","MYPASSWORDISWITHINTHEDESIGNCONSTRAINTS"))
+	#creates multiple test entries
+	session=budg_main.createAll()	#create a session to edit the expense table with
+	#create basic entries
+	session.add(Expense("car",True,date(2013,12,14),"",True,311,"",False))
+	#commit the entries
 	session.commit()
-	result=session.query(User)
+	#search for all results
+	result=session.query(Expense)
 	for thing in result:
-		#each user
-		for i in range(10):
-			tags="tag"+str(13*i)+",tag"+str(17*i)+",tag"+str(19*i)
-			session.add(Idea(thing.id,"Title"+str(i*13),"THIS IS BORING IDEA "+str(i*15),tags))
-	session.commit()
+		print thing
 	session.close()
-
+'''
 def outputUser(username):
 	#prints out a user's data
 	session=idea_box.createAll()
@@ -283,13 +283,14 @@ def changeToLowerUsers():
 		session.add(results[i])
 	session.commit()
 	session.close
-
+'''
 
 		
 deleteDB()
 createDB()
-createTestDB()
+testEntries_Expense()
 print "----------------------"	
+'''
 newUser()
 print "----------------------"	
 newIdea()
@@ -307,4 +308,5 @@ print "----------------------"
 deleteIdea()
 print "----------------------"	
 deleteUser()
-print "----------------------"	
+print "----------------------"
+'''

@@ -36,14 +36,14 @@ class Expense(Base):
 		self.fixed=fixed
 		self.amount=amount
 		if self.fixed:
-			self.estimated=estimated
+			self.estimated=amount
 		else:
-			self.fixed=-1
+			self.estimated=estimated
 
 		self.credit=credit
 		
-	def __init__(self):
+	def __repr__(self):
 		return "Name: %s \n Due: %s \n Recurring: %s \n Cycle: %s \n Fixed: %s \n Amount: %s \
 		\n Estimated: %s \n Credit: %s"%(self.name, self.due,self.recurring,self.cycle,self.fixed, 
-		self.amount, self.esimated, self.credit)
+		self.amount, self.estimated, self.credit)
 		

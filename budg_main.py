@@ -15,11 +15,12 @@ from operator import ne,eq,lt,le,ge,gt
 
 
 #storage path for the database
-path="C:\\Users\Charles\Dropbox\Programming\DataBases\budgetManager.db" #this will be used during devleopment
+path="C:\\Users\Charles\Dropbox\Programming\DataBases\\budget.db" #this will be used during devleopment
 #path="/home/cmcfeaters/projects/idea_box/Idea_Box.db"	#eventually it will be moved to here when deployed to web server
 
 def createAll():
 	#create the engine, the base and the session
+	#dbName="budget.db"
 	engine=create_engine('sqlite:///'+path,echo=False)
 	Session=sessionmaker(bind=engine)
 
