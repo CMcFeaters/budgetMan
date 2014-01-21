@@ -87,18 +87,14 @@ class Account(Base):
 	entVal=Column(Integer)
 	entDate=Column(Date)
 	lowVal=Column(Integer)
-	goalVal=Column(Integer)
-	goalDate=Column(Date)
 	cashFlows=relationship("CashFlow",backref="accounts",cascade="all,delete-orphan")	#link to cashflow table
 		
 	'''account class'''
-	def __init__(self,title,entVal,entDate=datetime.date.today(),lowVal=0,goalVal=0,goalDate=datetime.date.today()):
+	def __init__(self,title,entVal,entDate=datetime.date.today(),lowVal=0):
 		self.title=title
 		self.entVal=entVal
 		self.entDate=entDate
 		self.lowVal=lowVal
-		self.goalVal=goalVal	#this is the goal value for an account
-		self.goalDate=goalDate	#this is the goal date for an account
 	
 	def dateValue(self,date=datetime.date.today()):
 		'''calculate the current value based on cashflows up to a certain date'''
@@ -109,15 +105,37 @@ class Account(Base):
 			for expense in cf.createSeries():
 				if expense.date<=date: cVal=cVal+expense.value
 		return cVal
+	
+	def getRate(self,type,startDate,endDate):
+		'''returns the cashflow rate on a <type> basis between the start and end date'''
+		cVal=0
+		for cf in self.cashFlows:
+			for expense in cf.createSeries():
+				if expense.date<=endDate and expense.date>=startDate: cVal=cVal+expense.value
+				
+		if type=="Day":
+			return cVal/(endDate-startDate).days
+		elif type=="Week":
+			return (cVal/(endDate-startDate).days)*7
+		else:
+			return cVal/((endDate.year-startDate.year)*12+endDate.month-startDate.month)
+	
+	def valueDate(self,value,startDate=0,endDate=0):
+		if startDate==0:startDate=self.entDate
+		if endDate==0:endDate=datetime.date(startDate.year+1,startDate.month,startDate.day)
+		'''return the date a given value will be reached, given the cashflow rate over a year starting from teh entry date'''
+		if self.dateValue(startDate)<value and self.getRate("Day",startDate,endDate)>0:#positive rate
+			return startDate+datetime.timedelta((value-self.dateValue(startDate))/self.getRate("Day",startDate,endDate))
+		elif self.dateValue(startDate)>value and self.getRate("Day",startDate,endDate)<0:#negative rate
+			return startDate+datetime.timedelta((value-self.dateValue(startDate))/self.getRate("Day",startDate,endDate))
+		else:	#else we will never cross this threshold
+			return False
+
+
+	def upcomingExpenses(self,endDate,startDate=datetime.date.today()):
+		'''returns a list of upcoming cashflows from today up till <date>'''
+		return [expense for cf in self.cashFlows for expense in cf.createSeries() if expense.date<=endDate and expense.date>=startDate]
 		
-	def meetGoal(self):
-		'''performs calculations to determine if the current set of cashflows will achieve the 
-		account goal by the given date'''
-		return self.goalVal>=self.dateVal(self.goalDate)
-
-	#consider a function which sets the current value to the entered value, something like approve
-	#this can reduce our table size by deleting old account data
-
 	def lowWarn(self,date=datetime.date.today()):
 		'''summarizes all cashflows upto a given date and determines if they meet the low account warning criteria'''
 		return (self.dateVal(date)<=self.lowVal)
@@ -131,7 +149,6 @@ class Account(Base):
 
 	def __iter__(self):
 		return iter([attr[0] for attr in inspect.getmembers(self,not inspect.ismethod) if type(attr[1])!=types.MethodType and not attr[0].startswith("_")])
-		#return iter([attr for attr in dir(self) if not callable(attr) and not attr.startswith("__")])
 
 class AccountTests(unittest.TestCase):
 	#x=Account("Test",10,goalVal=100,goalDate=datetime.date(2014,1,28))
@@ -155,7 +172,7 @@ class AccountTests(unittest.TestCase):
 	
 	def test001_AddAccount(self):		
 		#create an account
-		acc=Account("Checking", 100, datetime.date.today(),5,1000,datetime.date(2015,01,20))
+		acc=Account("Checking", 100, datetime.date.today(),5)
 		session=self.createDB()
 		session.add(acc)
 		session.commit()	#add the entry to the db
@@ -181,8 +198,39 @@ class AccountTests(unittest.TestCase):
 		acc=result.all()[0]
 		print "Value: "+str(acc.dateValue(datetime.date(2014,02,22)))
 		session.close()
-		self.deleteDB()
+
 		self.assertTrue(True)
+	
+	def test004_CashFlowRate(self):
+		#check the cashflow rate between two given dates
+		session=self.createDB()
+		result=session.query(Account)
+		acc=result.all()[0]
+		print "Daily: "+str(acc.getRate("Day",datetime.date(2014, 1,21),datetime.date(2014,2,23)))
+		print "Weekly: "+str(acc.getRate("Week",datetime.date(2014, 1,21),datetime.date(2014,2,23)))
+		print "Monthly: "+str(acc.getRate("Month",datetime.date(2014, 1,21),datetime.date(2014,2,23)))
+		session.close()
+		self.assertTrue(True)
+	
+	def test005_upcomingExpenses(self):
+		#return a list of upcoming expenses from today till X
+		session=self.createDB()
+		result=session.query(Account)
+		acc=result.all()[0]
+		
+		for bill in acc.upcomingExpenses(datetime.date(2014,3,24)):
+			print "Title: "+bill.title+" Date: "+str(bill.date)+" - Amount: "+str(bill.value)
+		
+		session.close()
+		self.assertTrue(True)
+	
+	def test006_goalActual(self):
+		#return the date the goal will be made, return false if won't hit goal
+		session=self.createDB()
+		acc=session.query(Account).all()[0]
+		print acc.valueDate(10000)
+		session.close()
+		self.deleteDB()
 		
 	def printAccounts(self):
 		session=self.createDB()
