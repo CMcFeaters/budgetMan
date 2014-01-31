@@ -23,13 +23,12 @@ monitor account values to preset conditions.  Finally graphs visually displaying
 
 Functionality to Add:
 	Account
-	-time to goal
 	X-Upcoming expenses
 	X-update account date
 	X-verify pre-entry expenses don't affect account value
 	X-calculate cash flow over a period of time
 	CashFlow
-	-estimates versus actual
+	X-estimates versus actual
 	
 
 
