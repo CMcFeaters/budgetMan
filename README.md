@@ -30,7 +30,10 @@ Functionality to Add:
 	CashFlow
 	X-estimates versus actual
 	
-
+Next Steps:
+-Add Flask
+-Add Flask Sqlaclhemy package
+-Make web interface
 
 The database will have the following tables
 

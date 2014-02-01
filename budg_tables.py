@@ -3,7 +3,7 @@ budg_tables
 this contains all of the setup data for the tables
 '''
 import unittest, datetime, inspect, types
-from sqlalchemy import Column, Integer, String, Date, Boolean, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, Date, Boolean, Float, ForeignKey,  
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine,and_,or_
