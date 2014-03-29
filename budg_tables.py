@@ -3,15 +3,13 @@ budg_tables
 this contains all of the setup data for the tables
 '''
 import unittest, datetime, inspect, types
-from sqlalchemy import Column, Integer, String, Date, Boolean, Float, ForeignKey,  
+from sqlalchemy import Column, Integer, String, Date, Boolean, Float, ForeignKey 
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine,and_,or_
 from sqlalchemy.orm import sessionmaker
 import sys, string, os
 Base=declarative_base()
-
-#need to create a date iterator
 
 class dateRange():
 	'''an array of all days between two dates'''
@@ -24,7 +22,20 @@ class dateRange():
 		return iter([(self.startDate+datetime.timedelta(day)) for day in range(0,(self.endDate-self.startDate).days)])
 		
 class CashFlow(Base):
-	'''cashFlow class'''
+	'''cashFlow class
+		This class/table is to capture all cashflow data related to an account.
+		*Note: because some cashflows will affect multiple accoutns (paying a credit card account), a 
+				the process for creating the cashflow should include the option to create 2 identical cashflows
+				affecting the different accoutns
+		Cashflows can be recurring (they happen on a periodic basis) or single.  they have a value, an entry date and
+		can be estimates if total is not known (ex: grocery budget)
+		functions:
+		createSeries-
+			this expands a recurring payment into a series of individual paymnets based on type.  output is an array
+		popSeries-
+			this function takes in a cashflow and returns a tuple containing the first amount of the series and the remainder of teh series.
+			this is designed to be used to convert estimated values to real values
+	'''
 	__tablename__="cashflows"
 	
 	id=Column(Integer,primary_key=True)
@@ -116,7 +127,20 @@ class CashFlow(Base):
 		return iter([attr[0] for attr in inspect.getmembers(self,not inspect.ismethod) if type(attr[1])!=types.MethodType and not attr[0].startswith("_")])
 
 class Account(Base):
-	#this needs to be returned to jsut a storage and display account
+	'''primary account class.  the account is setup with a title, a starting value, a starting date and a low value (used to execute warnings)
+	additionally cashflows can be linked to the account (separate table) and will be accessed by the account to display output values
+	functions:
+	getExpenses-
+		takes in a end date, and start date.  returns an array of the expenses (cashflows) impacting teh account between the two dates
+	getExpenseValues
+		takes in a start and end date, returns the cash value of expenditures between the two dates
+	getRate-
+		give a type, a start date and an end date, returns the rate of expense/savings for the account on a type basis (day, month, week)
+	getDateValue-
+		given an end date, returns the value of the account on that date
+	getEstimates-
+		given an end date, returns all expenses on an account that are estimates
+	'''
 	__tablename__="accounts"
 	#values
 	id=Column(Integer,primary_key=True)
@@ -285,3 +309,5 @@ def main():
 	
 if __name__=="__main__":
 	main()
+else:
+	print __name__

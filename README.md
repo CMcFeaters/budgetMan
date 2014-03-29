@@ -34,6 +34,10 @@ Next Steps:
 -Add Flask
 -Add Flask Sqlaclhemy package
 -Make web interface
+-Add general input functions to website
+	-define python backend functions
+-add general output functiosn to website
+	-define python backend output functions
 
 The database will have the following tables
 
