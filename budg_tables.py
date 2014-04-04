@@ -3,24 +3,23 @@ budg_tables
 this contains all of the setup data for the tables
 '''
 import unittest, datetime, inspect, types
-#from sqlalchemy import Column, Integer, String, Date, Boolean, Float, ForeignKey 
-#from sqlalchemy.orm import relationship, backref
-#from sqlalchemy.ext.declarative import declarative_base
-#from sqlalchemy import create_engine,and_,or_
-#from sqlalchemy.orm import sessionmaker
 import sys, string, os
 
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 
+from budg_page import db
+
+
 #Base=declarative_base()
 #path="C:\\Users\Charles\Dropbox\Programming\DataBases\\budget.db"
+'''remove these lines when done with debugging
 path="Users/Charles/Dropbox/Programming/DataBases/budget.db"
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////'+path
 db = SQLAlchemy(app)
-
-
+db.create_all()
+'''
 
 
 class dateRange():
@@ -55,7 +54,7 @@ class CashFlow(db.Model):
 	title=db.Column(db.String)	
 	value=db.Column(db.Integer)
 	date=db.Column(db.DateTime)
-	recurType=db.Column(db.String)
+	recurType=db.Column(db.String) #Day, Month, Week
 	recurRate=db.Column(db.Integer)
 	recurEnd=db.Column(db.DateTime)
 	estimate=db.Column(db.Boolean)	#is the cashflow an estimate or known value
@@ -193,7 +192,7 @@ class Account(db.Model):
 	
 	def getDateValue(self,endDate=datetime.datetime.today()):
 		'''returns a value containing the $ value of an account including all expenses up to endDate from entDate'''
-		return self.entVal-self.getExpenseValues(endDate=endDate)
+		return self.entVal+self.getExpenseValues(endDate)
 	
 	def getEstimates(self,endDate,startDate=False):
 		#'''if startdate is false, account entered date is assumed'''
@@ -218,7 +217,7 @@ class AccountTests(unittest.TestCase):
 	#def createDB(self):
 
 	
-	db.create_all()
+	#db.create_all()
 	#engine=create_engine('sqlite:///'+path,echo=False)
 	#Session=sessionmaker(bind=engine)
 	#session=Session()#instance of a session to communicate with the DB
@@ -229,11 +228,10 @@ class AccountTests(unittest.TestCase):
 		path="C:\\Users\Charles\Dropbox\Programming\DataBases\\budget.db"
 		if os.path.exists(path):
 			os.remove(path)
-		
 	
 	def test001_AddAccount(self):		
 		#create an account
-		acc=Account("Checking", 100, datetime.date(2014,01,01),5)
+		acc=Account("Checking", 100, datetime.datetime(2014,01,01),5)
 		#session=self.createDB()
 		db.session.add(acc)
 		db.session.commit()	#add the entry to the db
@@ -243,12 +241,12 @@ class AccountTests(unittest.TestCase):
 		#add a cashflow
 		#session=self.createDB()
 		acc=db.session.query(Account).filter(Account.title=="Checking").all()[0]
-		rent=CashFlow(acc.id,"Rent",-1550,datetime.date(2014,02,01),"Month",1,datetime.date(2015,01,20))
-		income=CashFlow(acc.id,"Payroll",2048,datetime.date(2014,01,23),"Week",2,datetime.date(2015,01,20))
-		expense2=CashFlow(acc.id,"Drug Sales",-100,datetime.date(2014,01,23),estimate=True)#,"Day",1,datetime.date(2014,1,30))
+		rent=CashFlow(acc.id,"Rent",-10,datetime.datetime(2014,02,01),"Month",1,datetime.datetime(2015,01,20))
+		income=CashFlow(acc.id,"Payroll",2048,datetime.datetime(2014,01,23),"Week",2,datetime.datetime(2015,01,20))
+		#expense2=CashFlow(acc.id,"Drug Sales",-100,datetime.date(2014,01,23),estimate=True)#,"Day",1,datetime.date(2014,1,30))
 		db.session.add(rent)
 		db.session.add(income)
-		db.session.add(expense2)
+		#db.session.add(expense2)
 		db.session.commit()
 		#session.close()
 		self.assertTrue(True)
@@ -294,14 +292,14 @@ class AccountTests(unittest.TestCase):
 		#add the income to be estimated
 		print acc.getEstimates(datetime.datetime.today())
 		
-	def test007_popTest(self):
+	def _test007_popTest(self):
 		#tests the pop function of cashflow
 		
 		acc=db.session.query(Account).all()[0]
 		print acc.cashFlows[0].popSeries()
 		self.assertTrue(True)
 	
-	def test999_deleteDB(self):
+	def _test999_deleteDB(self):
 		db.session.close()
 		self.deleteDB()
 		print "deleted"
@@ -317,9 +315,8 @@ class AccountTests(unittest.TestCase):
 
 
 def main():
+
 	unittest.main()
 	
 if __name__=="__main__":
 	main()
-else:
-	print __name__
