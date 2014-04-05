@@ -30,7 +30,16 @@ Functionality to Add:
 	CashFlow
 	X-estimates versus actual
 	
-
+Next Steps:
+-Add Flask
+	-create flask branch
+	-import flask-sqlalchemy class
+	-modify budg_tables to work with flask-sql
+-Make web interface
+	-Add general input functions to website
+		-define python backend functions
+	-add general output functiosn to website
+		-define python backend output functions
 
 The database will have the following tables
 
