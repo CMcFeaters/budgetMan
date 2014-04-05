@@ -11,6 +11,13 @@
 	removeAccount-
 		
 	editAccount-
+		takes in values and edits an account accordingly.
+		
+	dateCheck-
+		a function that verifies dates entered are in their proper format
+	
+	titleCheck-
+		a function that takes in 
 		
 	addExpenses-
 		
@@ -22,14 +29,10 @@
 '''
 
 from budg_tables import CashFlow, Account
-from budg_page import db
-from flask import Flask
-from flask.ext.sqlalchemy import SQLAlchemy
-
+from appHolder import db
 import unittest, datetime, inspect, types
 import sys, string, os, random
 
-import sys, string
 from operator import ne,eq,lt,le,ge,gt
 
 class functionTests(unittest.TestCase):
@@ -40,7 +43,7 @@ class functionTests(unittest.TestCase):
 		if os.path.exists(path):
 			os.remove(path)
 
-	def test001_AddAccount(self):		
+	def _test001_AddAccount(self):		
 		#create an account
 		name="Checking"+str(random.randrange(100))
 		amount=random.randrange(100)
@@ -70,7 +73,7 @@ class functionTests(unittest.TestCase):
 		else:
 			self.assertTrue(False)
 	
-	def test004_addCashflow(self):
+	def _test004_addCashflow(self):
 		'''adds a cash flow to a given account'''
 		res=Account.query
 		acc=res[random.randrange(len(res.all()))]
@@ -84,10 +87,31 @@ class functionTests(unittest.TestCase):
 		if len(CashFlow.query.filter_by(title=nTitle).all())==1:
 			self.assertTrue(True)
 		else:
-			self.assertTure(False)
-		
+			self.assertTrue(False)
 	
-	def test099_displayAccountsFinal(self):
+	def test005_editAccount(self):
+		'''a funciton to modify certain account aspects'''
+		res=Account.query
+		acc=res[random.randrange(len(res.all()))]
+		nTitle=acc.title+"*"
+		nValue=acc.entVal*10
+		nDate=acc.entDate+datetime.timedelta(365)
+		editAccount(acc.id,nTitle,nValue,nDate)
+		if len(Account.query.filter_by(title=nTitle).all())>0:
+			self.assertTrue(True)
+		else:
+			self.assertTrue(False)
+			
+	def test006_dateTest(self):
+		d1="12/34/5678"
+		d2="12-34-5678"
+		d3="8765/43/21"
+		if not dateCheck(d2) and not dateCheck(d3) and dateCheck(d1):
+			self.assertTrue(True)
+		else:
+			self.assertFalse(False)
+	
+	def _test099_displayAccountsFinal(self):
 		res=Account.query
 		print"******************************************************"
 		for thing in res:
@@ -114,12 +138,55 @@ class functionTests(unittest.TestCase):
 			print thing
 			print "_____******______"
 
+			
+def accTitleCheck(nTitle):
+	'''this checks the title against are required parameters'''
+	#1 3-20 characters
+	#2 not a duplicate
+	if (len(nTitle)>=3 and len(nTitle)<=20) and len(Account.query.filter_by(title=nTitle.lower()).all())==0:
+		return True
+	else: return False
+	
+def dateCheck(nDate):
+	'''this checks a date to verify it is in appropriate datetime format
+	string assumed to be in this format: MM/DD/YYYY'''
+	if nDate[2]==nDate[5]=="/":
+		[M,D,Y]=string.split(nDate,"/")
+		try:
+			datetime.datetime(int(Y),int(D),int(Y))
+			return True
+		except ValueError:
+			#invalide format, return false
+			return False
+
+
+		
+	
+	
+def editAccount(aId,nTitle="",nVal="",nDate="",nLow=""):
+	'''edits an existing account to match the new values sent in'''
+	#this needs to be variable so that you can edit the name and/or value and/or date, etc
+	#check to make sure the title isn't being used
+	acc=Account.query.filter_by(id=aId).all()[0]
+	if nTitle<>"":
+		if accTitleCheck(nTitle):
+			acc.title=nTitle.lower()
+	if nVal<>"":
+		acc.entVal=nVal
+	if nDate<>"":
+		acc.entDate=nDate
+	if nLow<>"":
+		acc.lowVal=nLow
+	db.session.commit()
+		
+			
 def addAccount(nTitle,entVal,entDate,lowVal=0):
 	'''creates and commits a new account, must first verify the name doesn't already exist'''
-	if len(Account.query.filter_by(title=nTitle.lower()).all())==0:
+	if accTitleCheck(nTitle):
 		acc=Account(nTitle.lower(),entVal,entDate,lowVal)
 		db.session.add(acc)
 		db.session.commit()
+		return True
 	else:
 		return "Account: %s already exists, please rename the new account"%nTitle
 	
@@ -141,6 +208,8 @@ def addCashFlow(account,nTitle,nValue,nDate,nRType,nRRate,nREnd,nEstimate=False)
 		
 	
 def main():
+	from flask import Flask
+	from flask.ext.sqlalchemy import SQLAlchemy
 	path="Users/Charles/Dropbox/Programming/DataBases/budget.db"
 	app = Flask(__name__)
 	app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////'+path
@@ -150,3 +219,4 @@ def main():
 			
 if __name__=="__main__":
 	main()
+	

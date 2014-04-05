@@ -1,0 +1,30 @@
+{% extends "budg_layout.html" %}	
+{% block body %}
+
+<div class=largeText>What is this?</div>
+<div class=smallText><p>This is a budget maintenance program.  
+This program is designed to help maintain your budget and keep you out of the poor house. </p>
+<p>Note: It is only as good as the data you give it</p>
+</div>
+
+
+<!-- list the accounts and their ammounts here -->
+
+<div class=mediumText>Account Data</div>
+
+<ul class=results>
+{% for account in results %}
+<li><h2>{{account.title}}</h2>
+{{account.getDateValue()}}
+<br>
+{{tDate}}
+<br>
+<a href="{{ url_for('deleteAccount',title=account.title) }}">delete</a></sml>
+{% else %}
+<li><em>Nothing to report chief</em>
+
+{% endfor %}
+</ul>
+
+
+{% endblock %}

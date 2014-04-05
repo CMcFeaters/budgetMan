@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block body %}
+<center><a href="{{ url_for('addIdea') }}">Add Idea</a> /
+ <a href="{{ url_for('searchIdea') }}">Search Ideas</a> / 
+<a href="{{ url_for('displayAll') }}">Peruse Ideas</a></center>
+<ul class=results>
+{% for idea in results %}
+<li><h2>{{idea.title}}</h2>{{idea.idea|safe}}
+<br>
+<sml>Tags: {{idea.tags}} </sml><br>
+<sml><a href="{{ url_for('editIdea',title=idea.title) }}">edit</a> / 
+<a href="{{ url_for('deleteIdea',title=idea.title) }}">delete</a></sml>
+{% else %}
+<li><em>Nothing to report chief</em>
+
+{% endfor %}
+</ul>
+<div class=logout>
+<a href="{{ url_for('logout') }}">logout</a>
+</div>
+{% endblock %}

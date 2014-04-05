@@ -1,0 +1,14 @@
+{% extends "layout.html" %}	
+{% block body %}
+<!--register page-->
+<form name=deleteUser action="{{ url_for('deleteUser',username=username) }}" method=POST>
+<dl>
+<dt>Username: {{username}}
+<br>
+<input type="submit" value=Delete>
+<a href="{{ url_for('admin') }}"><input type="button" name="Cancel" value=Cancel></a>
+</form>
+<div class=logout>
+<a href="{{ url_for('admin') }}">back</a>
+</div>
+{% endblock %}

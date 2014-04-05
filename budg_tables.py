@@ -2,18 +2,16 @@
 budg_tables
 this contains all of the setup data for the tables
 '''
+from appHolder import db
 import unittest, datetime, inspect, types
 import sys, string, os
 
+
+
+
+'''remove these lines when done with debugging
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
-
-from budg_page import db
-
-
-#Base=declarative_base()
-#path="C:\\Users\Charles\Dropbox\Programming\DataBases\\budget.db"
-'''remove these lines when done with debugging
 path="Users/Charles/Dropbox/Programming/DataBases/budget.db"
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////'+path
@@ -315,7 +313,13 @@ class AccountTests(unittest.TestCase):
 
 
 def main():
-
+	from flask import Flask
+	from flask.ext.sqlalchemy import SQLAlchemy
+	path="Users/Charles/Dropbox/Programming/DataBases/budget.db"
+	app = Flask(__name__)
+	app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////'+path
+	db = SQLAlchemy(app)
+	db.create_all()
 	unittest.main()
 	
 if __name__=="__main__":

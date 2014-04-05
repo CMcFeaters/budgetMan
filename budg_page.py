@@ -1,19 +1,15 @@
 '''Budget Page'''
 #webpage
 #uses flask to create working page
-from flask import Flask, render_template,redirect,url_for, flash, request, session
-from flask.ext.sqlalchemy import SQLAlchemy
-import budg_tables
+
+from budg_functions import delAccount, addAccount
+from budg_tables import Account, CashFlow
+from appHolder import db, app
 import datetime
 
-path="Users/Charles/Dropbox/Programming/DataBases/budget.db"
 
-app= Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////'+path
-db = SQLAlchemy(app)
-#app.config.from_envvar('FLASKR_SETTINGS',silent=True)
-app.debug=True
-app.secret_key = 'development key'
+
+
 
 @app.route('/')
 def welcome():
@@ -21,5 +17,27 @@ def welcome():
 	results=budg_tables.Account.query
 	return render_template("budg_welcome.html", results=results,tDate=datetime.date.today())
 	
+@app.route('/deleteAccount/<title>')
+def deleteAccount(title):
+	#standard welcome, you're logged in or you're not
+	budg_functions.delAccount(title)
+	return redirect(url_for('welcome'))
+
+@app.route('/editAccount/<title>',methods=['GET','POST'])
+def edAccount(title):
+	'''this should use add account template with filled in values'''
+	pass
+
+@app.route('/adAccount',methods=['GET','POST'])
+def adAccount():
+	'''adds an account'''
+	if request.method=='POST': 
+		#the form data has been posted
+		return redirect(url_for('welcome')
+		
+	else:
+		#just display the page so the user can enter the data
+		
+
 if __name__=='__main__':
 		app.run()

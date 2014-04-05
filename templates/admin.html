@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block body %}
+<ul class=results>
+{% for user in users %}
+<li><h2>{{user.username}}</h2>
+<br>Number of Ideas: {{user.ideas|length}}
+<br>
+<sml><a href="{{ url_for('deleteUser',username=user.username) }}">Delete</a> / 
+<a href="{{ url_for('resetPassword',username=user.username) }}">Reset Password</a></sml>
+{% else %}
+<li><em>Nothing to report chief</em>
+
+{% endfor %}
+</ul>
+<div class=logout>
+<a href="{{ url_for('logout') }}">logout</a>
+</div>
+{% endblock %}

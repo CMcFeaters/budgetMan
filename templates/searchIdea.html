@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block body %}
+<center><a href="{{ url_for('addIdea') }}">Add Idea</a> / Search Ideas / <a href="{{ url_for('displayAll') }}">Peruse Ideas</a></center>
+<form name=searchData action="{{ url_for('searchIdea') }}" method=POST>
+<dl>
+<dt><p>Enter data to search by.  All searches are 'and' based. %'s are wild cards.</p>
+<dt>Title:
+<dt><input type="text" name="title">
+<dt>Idea:
+<dt><textarea name="body" rows="20" cols="50"></textarea>
+<dt>Tags:
+<dt><input type="text" name="tags">
+<dt><br>
+<dt><input type=submit value="Search" name="Search This data"><input type=reset value="Clear" name="Clear">
+</form>
+<div class=logout>
+<a href="{{ url_for('logout') }}">logout</a>
+</div>
+{% endblock %}

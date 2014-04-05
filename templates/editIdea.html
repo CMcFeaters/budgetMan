@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<!--EDIT IDEA-->
+
+<center><a href="{{ url_for('addIdea') }}">Add Idea</a>  / <a href="{{ url_for('searchIdea') }}">Search Ideas</a> / <a href="{{ url_for('displayAll') }}">Peruse Ideas</a></center>
+<form name=newIdea action="{{ url_for('editIdea',title=idea.title) }}" method=POST>
+<dl>
+<dt>Title:
+<dt><textarea name="title" rows="1" cols="20">{{idea.title}}</textarea>
+<dt>Idea:
+<dt><textarea name="body" rows="20" cols="50" maxlength='1000'>{{idea.idea}}</textarea>
+<dt>Tags:
+<dt><textarea name="tags" rows="1" cols="20" maxlength='50'>{{idea.tags}}</textarea>
+<dt><br>
+<dt><input type=submit value="Submit" name="Submit">
+</form>
+<div class=logout>
+<a href="{{ url_for('logout') }}">logout</a>
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "layout.html" %}	
+{% block body %}
+<!--register page-->
+<form name=newUsername action="{{ url_for('editUsername',username=username) }}" method=POST>
+<dl>
+<dt>Username:<sml>3-10 characters, letters, numbers and _ only</dt>
+<dt><input type="text" name="newUsername" value={{username}}></dt>
+<input type="submit" value=Submit>
+</form>
+<div class=logout>
+<a href="{{ url_for('welcome') }}">back</a>
+</div>
+{% endblock %}

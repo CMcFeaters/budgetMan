@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<!--ADD IDEA-->
+
+<center>Add Idea / <a href="{{ url_for('searchIdea') }}">Search Ideas</a> / <a href="{{ url_for('displayAll') }}">Peruse Ideas</a></center>
+<form name=newIdea action="{{ url_for('addIdea') }}" method=POST>
+<dl>
+<dt>Title:<sml>3-15 characters</sml>
+<dt><textarea name="title" rows="1" cols="20"></textarea>
+<dt>Idea:
+<dt><textarea name="body" rows="20" cols="50" maxlength='1000'></textarea>
+<dt>Tags:<sml>Separate tags with a comma</sml>
+<dt><textarea name="tags" rows="1" cols="20" maxlength=50 ></textarea>
+<dt><br>
+<dt><input type=submit value="Submit" name="Submit"><input type=reset value="Clear" name="Clear">
+</form>
+<div class=logout>
+<a href="{{ url_for('logout') }}">logout</a>
+</div>
+{% endblock %}

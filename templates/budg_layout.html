@@ -1,0 +1,12 @@
+<!--layout-->
+<!doctype html>
+<title>Budget Maintenance</title>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='budg_style.css') }}">
+
+<div class=page>
+  <center><h1>Budget Maintenance Program</h1></center>
+  {%for message in get_flashed_messages()%}
+  		<div class=flash>{{message}}</div>
+  {%endfor%}		
+  {% block body %}{% endblock %}
+</div>

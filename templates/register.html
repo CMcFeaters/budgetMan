@@ -1,0 +1,17 @@
+{% extends "layout.html" %}	
+{% block body %}
+<!--register page-->
+<form name=userRegister action="{{ url_for('register') }}" method=POST>
+<dl>
+<dt>Username:<sml>3-10 characters, letters, numbers and _ only</sml></dt>
+<dt><input type="text" name="regUsername"></dt>
+<dt>Password:<sml>10-50 characters</sml></dt>
+<dt><input type="password" name="regPassword"></dt>
+<dt>Confirm:</dt>
+<dt><input type="password" name="passwordConfirm"></dt>
+<input type="submit" value=Register>
+</form>
+<div class=logout>
+<a href="{{ url_for('welcome') }}">back</a>
+</div>
+{% endblock %}
