@@ -13,12 +13,15 @@
 	editAccount-
 		takes in values and edits an account accordingly.
 		
-	dateCheck-
-		a function that verifies dates entered are in their proper format
+	dateCompile-
+		takes in a year, month and day strings, validates and returns either a datetime object of false
+	amountCompile-
+		takes in a string as a number, validates and returns an int
 	
-	titleCheck-
-		a function that takes in 
-		
+	accountCompile-
+		given entry data, validates all requirements, compiles data into database format and calls
+		addAccount
+	
 	addExpenses-
 		
 	removeExpense-
@@ -30,6 +33,7 @@
 
 from budg_tables import CashFlow, Account
 from appHolder import db
+from server_validation import titleValidate, dateValidate, amountValidate
 import unittest, datetime, inspect, types
 import sys, string, os, random
 
@@ -46,12 +50,12 @@ class functionTests(unittest.TestCase):
 	def _test001_AddAccount(self):		
 		#create an account
 		name="Checking"+str(random.randrange(100))
-		amount=random.randrange(100)
-		date=datetime.datetime(2014,01,01)
-		addAccount(name,amount,date)
-		#session=self.createDB()
-		res=Account.query.filter_by(title=name.lower()).first()
-		if res.entVal==amount and res.entDate==date:
+		amount=str(random.randrange(100))
+		x=accountCompile(name,amount,"2013","12","25","500")
+		if x[0]!=False:
+			addAccount(x[0],x[1],x[2],x[3])
+		res=len(Account.query.filter_by(title=name.lower()).all())
+		if res==1:
 			self.assertTrue(True)
 		else:
 			self.assertTrue(False)
@@ -79,21 +83,27 @@ class functionTests(unittest.TestCase):
 		acc=res[random.randrange(len(res.all()))]
 		nTitle="CashFlow%s"%random.randrange(100)
 		value=random.randrange(100)
-		date=datetime.datetime(2014,01,01)#.today()-datetime.timedelta(days=random.randrange(100))
+		sY="2014"
+		sM="01"
+		sD="01"
+		eY="2015"
+		eM="01"
+		eD="01"
 		recurType="Day"
 		recurRate=10
 		recurEnd=datetime.datetime.today()+datetime.timedelta(days=365)
-		addCashFlow(acc,nTitle,value,date,recurType,recurRate,recurEnd)
-		if len(CashFlow.query.filter_by(title=nTitle).all())==1:
+		x=cfCompile(acc.id,nTitle,value,sY,sM,sD,recurType,recurRate,eY,eM,eD)
+		if x[0]!=False:
+			addCashFlow(x[1],x[2],x[3],x[4],x[5],x[6],x[7],x[8])
 			self.assertTrue(True)
 		else:
 			self.assertTrue(False)
 	
-	def test005_editAccount(self):
+	def _test005_editAccount(self):
 		'''a funciton to modify certain account aspects'''
 		res=Account.query
 		acc=res[random.randrange(len(res.all()))]
-		nTitle=acc.title+"*"
+		nTitle=str(random.randrange(100))+"abcd"+str(random.randrange(100))
 		nValue=acc.entVal*10
 		nDate=acc.entDate+datetime.timedelta(365)
 		editAccount(acc.id,nTitle,nValue,nDate)
@@ -102,14 +112,6 @@ class functionTests(unittest.TestCase):
 		else:
 			self.assertTrue(False)
 			
-	def test006_dateTest(self):
-		d1="12/34/5678"
-		d2="12-34-5678"
-		d3="8765/43/21"
-		if not dateCheck(d2) and not dateCheck(d3) and dateCheck(d1):
-			self.assertTrue(True)
-		else:
-			self.assertFalse(False)
 	
 	def _test099_displayAccountsFinal(self):
 		res=Account.query
@@ -138,39 +140,19 @@ class functionTests(unittest.TestCase):
 			print thing
 			print "_____******______"
 
-			
-def accTitleCheck(nTitle):
-	'''this checks the title against are required parameters'''
-	#1 3-20 characters
-	#2 not a duplicate
-	if (len(nTitle)>=3 and len(nTitle)<=20) and len(Account.query.filter_by(title=nTitle.lower()).all())==0:
-		return True
-	else: return False
-	
-def dateCheck(nDate):
-	'''this checks a date to verify it is in appropriate datetime format
-	string assumed to be in this format: MM/DD/YYYY'''
-	if nDate[2]==nDate[5]=="/":
-		[M,D,Y]=string.split(nDate,"/")
-		try:
-			datetime.datetime(int(Y),int(D),int(Y))
-			return True
-		except ValueError:
-			#invalide format, return false
-			return False
 
 
-		
-	
-	
 def editAccount(aId,nTitle="",nVal="",nDate="",nLow=""):
 	'''edits an existing account to match the new values sent in'''
 	#this needs to be variable so that you can edit the name and/or value and/or date, etc
 	#check to make sure the title isn't being used
 	acc=Account.query.filter_by(id=aId).all()[0]
 	if nTitle<>"":
-		if accTitleCheck(nTitle):
+		if titleValidate(nTitle):
 			acc.title=nTitle.lower()
+		else:
+			print nTitle
+			return False
 	if nVal<>"":
 		acc.entVal=nVal
 	if nDate<>"":
@@ -179,17 +161,46 @@ def editAccount(aId,nTitle="",nVal="",nDate="",nLow=""):
 		acc.lowVal=nLow
 	db.session.commit()
 		
-			
+def dateCompile(year,month,day):
+	'''takes in strings for year, month and day.  if they pass datevalidate returns
+	a datetime object, else returns false'''
+	if dateValidate(year,month,day):
+		return datetime.datetime(int(year),int(month),int(day))
+	else:
+		return False
+
+def amountCompile(amt):
+	if amountValidate(amt):
+		return int(amt)
+	else:
+		return "False"
+
+def accountCompile(nTitle,entVal,entY,entM,entD,lowVal=0):
+	'''#check all of the entered values, return a multi element tuple with the 
+	#compiled values if correct'''
+	entVal=amountCompile(entVal)
+	entDate=dateCompile(entY,entM,entD)
+	lowVal=amountCompile(lowVal)
+	if titleValidate(nTitle):
+		if entVal!="False":
+			if entDate!=False:
+				if lowVal!="False":
+					return (nTitle,entVal,entDate,lowVal)
+				else:
+					return (False,"LowVal is not a value")
+			else:	
+				return (False,"Entered date is a proper date in MM/DD/YYYY format")
+		else:
+			return (False,"Entered Value is not a value")
+	else:
+		return (False,"Title already exists or is not letters/numbers")
+		
 def addAccount(nTitle,entVal,entDate,lowVal=0):
 	'''creates and commits a new account, must first verify the name doesn't already exist'''
-	if accTitleCheck(nTitle):
-		acc=Account(nTitle.lower(),entVal,entDate,lowVal)
-		db.session.add(acc)
-		db.session.commit()
-		return True
-	else:
-		return "Account: %s already exists, please rename the new account"%nTitle
-	
+	acc=Account(nTitle.lower(),entVal,entDate,lowVal)
+	db.session.add(acc)
+	db.session.commit()
+
 def delAccount(nTitle):
 	'''deletes an account with matching title to nTitle'''
 	acc=Account.query.filter_by(title=nTitle).all()
@@ -197,15 +208,29 @@ def delAccount(nTitle):
 		db.session.delete(acc[0])
 		db.session.commit()
 
+	
+def cfCompile(account,nTitle,nValue,sY,sM,sD,nRType,nRRate,eY,eM,eD,nEstimate=False):
+	'''a compilation function.  takes in all teh cashflow variables, validates they are in range and returns
+	a tuple containing True and the modified variables or False and the reason for failure'''
+	#title check (will take in accunt id and newTitle
+	#need a type check
+	#need a ratecheck
+	#need an estimate check
+	entVal=amountCompile(nValue)
+	sDate=dateCompile(sY,sM,sD)
+	eDate=dateCompile(eY,eM,eD)
+	#typeValidate-returns true or false, use to validate only
+	#rate validate
+	estimate=estCompile(nEstimate)#i don't think i actually need this one.
+	return False
+	
+		
 def addCashFlow(account,nTitle,nValue,nDate,nRType,nRRate,nREnd,nEstimate=False):
 	'''adds a cashflow to a given account'''
-	if len(CashFlow.query.filter_by(title=nTitle.lower()).all())==0:
-		cf=CashFlow(account.id,nTitle,nValue,nDate,nRType,nRRate,nREnd,nEstimate)
-		db.session.add(cf)
-		db.session.commit()
-	else:
-		return "Cashflor: %s already exists, please rename the new cashflow"%nTitle
-		
+	cf=CashFlow(account.id,nTitle,nValue,nDate,nRType,nRRate,nREnd,nEstimate)
+	db.session.add(cf)
+	db.session.commit()
+	
 	
 def main():
 	from flask import Flask

@@ -1,7 +1,7 @@
 '''this file will hold our app.  all other files will reference this
 when they need to access the db'''
 
-from flask import Flask, render_template,redirect,url_for, flash, request, session
+from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 
 path="Users/Charles/Dropbox/Programming/DataBases/budget.db"

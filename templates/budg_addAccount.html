@@ -1,0 +1,26 @@
+{% extends "budg_layout.html" %}
+{% block body %}
+
+<!--ADD IDEA-->
+
+<fieldset><center><a href="{{ url_for('welcome') }}">Home</a> </center></fieldset>
+<form name=newAccount action="{{ url_for('adAccount') }}" method=POST>
+<fieldset>
+<legend>Account Data</legend>
+<dl>
+<dt>Title:<sml>3-15 characters</sml>
+<dt><textarea name="title" rows="1" cols="20"></textarea>
+<dt>Amount:
+<dt><textarea name="entVal" rows="1" cols="10" maxlength='10'></textarea>
+<dt>Date:
+<dt><textarea name="entM" rows="1" cols="2" maxlength='2'>MM</textarea> /
+<textarea name="entD" rows="1" cols="2" maxlength='2'>DD</textarea> /
+<textarea name="entY" rows="1" cols="4" maxlength='4'>YYYY</textarea>
+<dt>Low Value:
+<dt><textarea name="entLow" rows="1" cols="10" maxlength='10'>0</textarea>
+<br>
+<dt><input type=submit value="Submit" name="Submit"><input type=reset value="Clear" name="Clear">
+</fieldset>
+</form>
+
+{% endblock %} 
