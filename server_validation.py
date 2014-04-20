@@ -23,6 +23,29 @@ def titleValidate(nTitle):
 		return True
 	else: return False 
 	
+def cfTitleValidate(accID,nTitle):
+	'''this checks the title against are required parameters'''
+	#1 3-20 characters
+	#2 not a duplicate
+	if (len(nTitle)>=3 and len(nTitle)<=20) and len(re.findall("[a-zA-z0-9]",nTitle))==len(nTitle):
+		#res1=CashFlow.query.filter_by(account_id=accID,title=nTitle.lower())
+		#res2=CashFlow.query
+		
+		'''print"------------------RES1------------------"
+		for thing in res1.all():
+			print "%s - %s - %s"%(thing.id,thing.account_id,thing.title)
+		
+		
+		print "------------------RES2------------------"
+		for thing in res2.all():
+			print "%s - %s - %s"%(thing.id,thing.account_id,thing.title)'''
+		
+		if len(CashFlow.query.filter_by(account_id=accID,title=nTitle.lower()).all())==0:
+			return True
+		else: 
+			return False
+	else: return False 
+	
 def dateValidate(year,month,day):
 	'''checks the year, month and day submitted to the following standards'''
 	#1 month 2 digits (01-12)
@@ -167,6 +190,12 @@ class validationTests(unittest.TestCase):
 	
 	def test016_goodRate(self):
 		self.assertTrue(rateValidate("123123") and rateValidate(123))
+	
+	def test017_CFtitleValidate(self):
+		cf=CashFlow.query.all()[0]
+		print "%s - %s - %s"%(cf.id,cf.account_id,cf.title)
+		print "++++++++++++++++++++++++++++++++++++"
+		self.assertFalse(cfTitleValidate(cf.account_id,cf.title))
 	
 	def test100_cleanUp(self):
 		#delete the accountt that was just created

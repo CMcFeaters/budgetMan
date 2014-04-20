@@ -1,0 +1,52 @@
+{% extends "budg_layout.html" %}
+{% block body %}
+
+<!--ADD IDEA-->
+
+<fieldset><center><a href="{{ url_for('welcome') }}">Home</a> </center></fieldset>
+<form name=newCashFlow action="{{ url_for('adCashFlow') }}" method=POST>
+<fieldset>
+<legend>CashFlow Data</legend>
+<dl>
+<dt>Account:
+<dt>
+<select name="account">
+{% for account in acData %}
+	<option value={{account.id}}>{{account.title}}</option>
+{% endfor %}
+</select>
+
+<dt>Title:<sml>3-15 characters</sml>
+<dt><textarea name="title" rows="1" cols="20"></textarea>
+<dt>Amount:
+<dt><textarea name="entVal" rows="1" cols="10" maxlength='10'></textarea>
+
+<dt>Start Date:
+<dt><textarea name="sM" rows="1" cols="2" maxlength='2'>MM</textarea> /
+<textarea name="sD" rows="1" cols="2" maxlength='2'>DD</textarea> /
+<textarea name="sY" rows="1" cols="4" maxlength='4'>YYYY</textarea>
+
+<dt>End Date:
+<dt><textarea name="eM" rows="1" cols="2" maxlength='2'>MM</textarea> /
+<textarea name="eD" rows="1" cols="2" maxlength='2'>DD</textarea> /
+<textarea name="eY" rows="1" cols="4" maxlength='4'>YYYY</textarea>
+
+<dt>Recurring Period:
+<dt><textarea name="nRate" row="1" cols="3" maxlength="3">1</textarea> : 
+<select name="nType">
+	<option value="Day">Day</option>
+	<option value="Week">Week</option>
+	<option value="Month">Month</option>
+</select>'s
+
+<dt>
+<input type="checkbox" name="estimate" value="known">Estimate
+
+
+
+<br>
+<dt><input type=submit value="Submit" name="Submit"><input type=reset value="Clear" name="Clear">
+</fieldset>
+</form>
+
+{% endblock %} 

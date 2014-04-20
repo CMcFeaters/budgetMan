@@ -46,7 +46,6 @@ class CashFlow(db.Model):
 			this is designed to be used to convert estimated values to real values
 	'''
 	__tablename__="cashflows"
-	
 	id=db.Column(db.Integer,primary_key=True)
 	account_id=db.Column(db.Integer,db.ForeignKey('accounts.id'))
 	title=db.Column(db.String)	

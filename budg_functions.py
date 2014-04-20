@@ -33,7 +33,7 @@
 
 from budg_tables import CashFlow, Account
 from appHolder import db
-from server_validation import titleValidate, dateValidate, amountValidate
+from server_validation import titleValidate, dateValidate, amountValidate, cfTitleValidate, rateValidate, typeValidate
 import unittest, datetime, inspect, types
 import sys, string, os, random
 
@@ -77,12 +77,12 @@ class functionTests(unittest.TestCase):
 		else:
 			self.assertTrue(False)
 	
-	def _test004_addCashflow(self):
+	def test004_addCashflow(self):
 		'''adds a cash flow to a given account'''
 		res=Account.query
 		acc=res[random.randrange(len(res.all()))]
 		nTitle="CashFlow%s"%random.randrange(100)
-		value=random.randrange(100)
+		value=str(random.randrange(100))
 		sY="2014"
 		sM="01"
 		sD="01"
@@ -90,11 +90,11 @@ class functionTests(unittest.TestCase):
 		eM="01"
 		eD="01"
 		recurType="Day"
-		recurRate=10
+		recurRate=str(10)
 		recurEnd=datetime.datetime.today()+datetime.timedelta(days=365)
 		x=cfCompile(acc.id,nTitle,value,sY,sM,sD,recurType,recurRate,eY,eM,eD)
 		if x[0]!=False:
-			addCashFlow(x[1],x[2],x[3],x[4],x[5],x[6],x[7],x[8])
+			addCashFlow(x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7])
 			self.assertTrue(True)
 		else:
 			self.assertTrue(False)
@@ -125,6 +125,12 @@ class functionTests(unittest.TestCase):
 				
 		print"******************************************************"
 		self.assertTrue(True)	
+		
+	def _test998_dropCashFlows(self):
+		#drops teh cashflow table
+		CashFlow.query.delete()
+		db.session.commit()
+		self.assertTrue(True)
 		
 	def _test999_deleteDB(self):
 		db.session.close()
@@ -220,14 +226,25 @@ def cfCompile(account,nTitle,nValue,sY,sM,sD,nRType,nRRate,eY,eM,eD,nEstimate=Fa
 	sDate=dateCompile(sY,sM,sD)
 	eDate=dateCompile(eY,eM,eD)
 	#typeValidate-returns true or false, use to validate only
-	#rate validate
-	estimate=estCompile(nEstimate)#i don't think i actually need this one.
-	return False
-	
-		
+	#rate validate-returns true if number either positive or negative
+	#estimateValidate (not a user entry, will be a true/false input)
+	if cfTitleValidate(account,nTitle):
+		if typeValidate(nRType):
+			if sDate!=False:
+				if eDate!=False:
+					if entVal!="False":
+						if rateValidate(nRRate)!=False:
+							return (account,nTitle,entVal,sDate,nRType,nRRate,eDate,nEstimate)
+						else: return (False,"Rate entered incorrectly")
+					else: return (False,"Value incorrect")
+				else: return (False,"End Date incorrect")
+			else: return (False,"Start Date incorrect")
+		else: return (False,"Type incorrect")
+	else: return (False,"Title incorrect")
+			
 def addCashFlow(account,nTitle,nValue,nDate,nRType,nRRate,nREnd,nEstimate=False):
 	'''adds a cashflow to a given account'''
-	cf=CashFlow(account.id,nTitle,nValue,nDate,nRType,nRRate,nREnd,nEstimate)
+	cf=CashFlow(account,nTitle,nValue,nDate,nRType,nRRate,nREnd,nEstimate)
 	db.session.add(cf)
 	db.session.commit()
 	
