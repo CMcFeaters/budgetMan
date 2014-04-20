@@ -1,0 +1,52 @@
+{% extends "budg_layout.html" %}
+{% block body %}
+
+
+
+<fieldset><center><a href="{{ url_for('welcome') }}">Home</a> </center></fieldset>
+<!--ADD Select Account-->
+<form name=accountSelect action="{{ url_for('displayAccount') }}" method=POST>
+<fieldset>
+<legend>Select an account</legend>
+<dt>Account: 
+<select name="account">
+{% for account in ddList %}
+	<option value={{account.id}}>{{account.title}}</option>
+{% endfor %}
+</select>
+<br>
+<input type=submit value="Submit" name="Submit">
+</fieldset>
+</form>
+
+<!--Display Account Data-->
+
+{% if acData!="None" %}
+<fieldset>
+<legend>{{acData.title}} Data</legend>
+
+<ul class=results>
+<li><h2>{{acData.title}}</h2>
+Value: {{acData.getDateValue()}}
+<br>
+As of: {{tDate}}
+</ul>
+<!--Display Cashflow Data-->
+CashFlows:
+{% for cf in cfData %}
+<li><dl><md>{{cf.title}}</md>
+<dt>Amount: {{cf.value}}
+<dt>Start : {{cf.date}}
+<dt>End   : {{cf.recurEnd}}
+<dt>Type  : {{cf.recurType}}
+<dt>Rate  : {{cf.recurRate}}
+<dt>Est   : {{cf.estimate}}
+
+{% else %}
+<li><em>Nothing to report chief</em>
+
+{% endfor %}
+</ul>
+</fieldset>
+{% endif %}
+{% endblock %} 

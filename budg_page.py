@@ -45,10 +45,10 @@ def adCashFlow():
 	'''add a cashflow to an account'''
 	if request.method=='POST': 
 		#get the estimating
-		if request.form['estimate']=="Checked":
-			est=True
-		else:
+		if request.form['estimate']=="":
 			est=False
+		else:
+			est=True
 		#current problem***********************
 			#the cashflow's aren't affecting the totals on the welcome page
 			#maybe something with the account id's, etc
@@ -67,10 +67,19 @@ def adCashFlow():
 	acData=Account.query.all()
 	return render_template('budg_addCashFlow.html',acData=acData)
 
-@app.route('/displayAccount', methods=['GET'])
+@app.route('/displayAccount', methods=['GET','POST'])
 def displayAccount():
 	#this will display an account and show the cashflows specific to it
-	pass
+	ddList=Account.query.all()
+	if request.method=='POST':
+		#post will perform the querying of the account and display the information
+		#include: the account information
+		#the cashflow information
+		acData=Account.query.filter_by(id=request.form['account']).first()
+		cfData=CashFlow.query.filter_by(account_id=request.form['account']).all()
+		return render_template('account_data.html',acData=acData,ddList=ddList,cfData=cfData,tDate=datetime.date.today())
+	#otherwise we return with the option to select the accoutn data
+	return render_template('account_data.html',acData="None",ddList=ddList,cfData="",tDate=datetime.date.today())
 
 if __name__=='__main__':
 		app.run()
