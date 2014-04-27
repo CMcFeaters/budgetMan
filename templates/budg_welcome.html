@@ -1,8 +1,10 @@
 {% extends "budg_layout.html" %}	
 {% block body %}
 
-<fieldset><center><a href="{{ url_for('adAccount') }}">Add Account</a>
- / <a href="{{ url_for('adCashFlow') }}">Add CashFlow</a> / <a href="{{ url_for('displayAccount') }}">Display Data</a></center></fieldset>
+<fieldset><center><a href="{{ url_for('adAccount') }}">Add Account</a> / 
+<a href="{{ url_for('adCashFlow') }}">Add CashFlow</a> / 
+<a href="{{ url_for('adExpense') }}">Add Expense</a> / 
+<a href="{{ url_for('displayAccount') }}">Display Data</a></center></fieldset>
 <div class=largeText>What is this?</div>
 <div class=smallText><p>This is a budget maintenance program.  
 This program is designed to help maintain your budget and keep you out of the poor house. </p>
@@ -16,15 +18,15 @@ This program is designed to help maintain your budget and keep you out of the po
 
 <ul class=results>
 {% for account in results %}
-<li><h2>{{account.title}}</h2>
+<li><h2>{{account.title}}<sml> - <a href="{{ url_for('edAccount',id=account.id) }}">Edit</a></sml></h2>
 {{account.getDateValue()}}
 <br>
 {{tDate}}
+
 <br>
-<a href="{{ url_for('deleteAccount',title=account.title) }}">delete</a></sml>
+<sml><a href="{{ url_for('deleteAccount',title=account.title) }}">delete</a></sml>
 {% else %}
 <li><em>Nothing to report chief</em>
-
 {% endfor %}
 </ul>
 

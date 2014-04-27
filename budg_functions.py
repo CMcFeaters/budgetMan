@@ -77,7 +77,7 @@ class functionTests(unittest.TestCase):
 		else:
 			self.assertTrue(False)
 	
-	def test004_addCashflow(self):
+	def _test004_addCashflow(self):
 		'''adds a cash flow to a given account'''
 		res=Account.query
 		acc=res[random.randrange(len(res.all()))]
@@ -132,7 +132,7 @@ class functionTests(unittest.TestCase):
 		db.session.commit()
 		self.assertTrue(True)
 		
-	def _test999_deleteDB(self):
+	def test999_deleteDB(self):
 		db.session.close()
 		self.deleteDB()
 		print "deleted"
@@ -153,19 +153,27 @@ def editAccount(aId,nTitle="",nVal="",nDate="",nLow=""):
 	#this needs to be variable so that you can edit the name and/or value and/or date, etc
 	#check to make sure the title isn't being used
 	acc=Account.query.filter_by(id=aId).all()[0]
-	if nTitle<>"":
+	entVal=amountCompile(nVal)
+	lVal=amountCompile(nLow)
+	if nTitle!="":
 		if titleValidate(nTitle):
 			acc.title=nTitle.lower()
 		else:
-			print nTitle
-			return False
-	if nVal<>"":
-		acc.entVal=nVal
-	if nDate<>"":
-		acc.entDate=nDate
-	if nLow<>"":
-		acc.lowVal=nLow
+			return (False,"Title is incorrect")
+	if nVal!="":
+		if entVal!="False":
+			acc.entVal=nVal
+		else:
+			return (False,"Value is incorrect")
+	if nDate!="":
+		acc.entDate=nDate	#this gets checked in the budgPage
+	if nLow!="":
+		if lVal!="False":
+			acc.lowVal=nLow
+		else:
+			return (False,"Low Value is incorrect")
 	db.session.commit()
+	return (True,True)
 		
 def dateCompile(year,month,day):
 	'''takes in strings for year, month and day.  if they pass datevalidate returns
@@ -214,26 +222,36 @@ def delAccount(nTitle):
 		db.session.delete(acc[0])
 		db.session.commit()
 
-	
-def cfCompile(account,nTitle,nValue,sY,sM,sD,nRType,nRRate,eY,eM,eD,nEstimate=False):
+def delCashFlow(nID):
+	'''deletes a cashflow with the matching title'''
+	cf=CashFlow.query.filter_by(id=nID).first()
+	db.session.delete(cf)
+	db.session.commit()
+		
+def cfCompile(account,nTitle,nValue,sY,sM,sD,nRType="false",nRRate=0,eY="blank",eM=0,eD=0,nEstimate=False):
 	'''a compilation function.  takes in all teh cashflow variables, validates they are in range and returns
 	a tuple containing True and the modified variables or False and the reason for failure'''
+	#account is the account ID
 	#title check (will take in accunt id and newTitle
 	#need a type check
 	#need a ratecheck
 	#need an estimate check
 	entVal=amountCompile(nValue)
 	sDate=dateCompile(sY,sM,sD)
-	eDate=dateCompile(eY,eM,eD)
+	
+	if eY!="blank": eDate=dateCompile(eY,eM,eD) #single expense
+	else: eDate=datetime.datetime.today()
+	
+	acc=Account.query.filter_by(id=account).first()
 	#typeValidate-returns true or false, use to validate only
 	#rate validate-returns true if number either positive or negative
 	#estimateValidate (not a user entry, will be a true/false input)
 	if cfTitleValidate(account,nTitle):
-		if typeValidate(nRType):
+		if typeValidate(nRType) or nRType=="false":
 			if sDate!=False:
 				if eDate!=False:
 					if entVal!="False":
-						if rateValidate(nRRate)!=False:
+						if rateValidate(nRRate)!=False or (nRRate==0 and nRType=="false"):
 							return (account,nTitle,entVal,sDate,nRType,nRRate,eDate,nEstimate)
 						else: return (False,"Rate entered incorrectly")
 					else: return (False,"Value incorrect")

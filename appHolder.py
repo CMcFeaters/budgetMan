@@ -12,3 +12,6 @@ db = SQLAlchemy(app)
 #app.config.from_envvar('FLASKR_SETTINGS',silent=True)
 app.debug=True
 app.secret_key = 'development key'
+
+
+	

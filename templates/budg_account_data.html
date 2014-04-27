@@ -36,12 +36,13 @@ CashFlows:
 {% for cf in cfData %}
 <li><dl><md>{{cf.title}}</md>
 <dt>Amount: {{cf.value}}
-<dt>Start : {{cf.date}}
-<dt>End   : {{cf.recurEnd}}
+<dt>Start : {{cf.date.date()}}
+<dt>End   : {{cf.recurEnd.date()}}
 <dt>Type  : {{cf.recurType}}
 <dt>Rate  : {{cf.recurRate}}
 <dt>Est   : {{cf.estimate}}
-
+<br>
+<sml><a href="{{ url_for('deleteCashFlow',id=cf.id,accID=cf.account_id) }}">delete</a></sml>
 {% else %}
 <li><em>Nothing to report chief</em>
 

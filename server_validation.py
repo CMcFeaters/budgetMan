@@ -26,8 +26,7 @@ def titleValidate(nTitle):
 def cfTitleValidate(accID,nTitle):
 	'''this checks the title against are required parameters'''
 	#1 3-20 characters
-	#2 not a duplicate
-	if (len(nTitle)>=3 and len(nTitle)<=20) and len(re.findall("[a-zA-z0-9]",nTitle))==len(nTitle):
+	if (len(nTitle)>=3 and len(nTitle)<=30):
 		#res1=CashFlow.query.filter_by(account_id=accID,title=nTitle.lower())
 		#res2=CashFlow.query
 		

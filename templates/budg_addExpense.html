@@ -1,0 +1,33 @@
+{% extends "budg_layout.html" %}
+{% block body %}
+
+<!--ADD IDEA-->
+
+<fieldset><center><a href="{{ url_for('welcome') }}">Home</a> </center></fieldset>
+<form name=newCashFlow action="{{ url_for('adExpense') }}" method=POST>
+<fieldset>
+<legend>Expense Data</legend>
+<dl>
+<dt>Account:
+<dt>
+<select name="account">
+{% for account in acData %}
+	<option value={{account.id}}>{{account.title}} - {{account.entDate.date()}}</option>
+{% endfor %}
+</select>
+
+<dt>Title:<sml>3-20 characters</sml>
+<dt><textarea name="title" rows="1" cols="20"></textarea>
+<dt>Amount:
+<dt><textarea name="entVal" rows="1" cols="10" maxlength='10'></textarea>
+
+<dt>Date (MM/DD/YYYY):
+<dt><textarea name="M" rows="1" cols="2" maxlength='2'></textarea> /
+<textarea name="D" rows="1" cols="2" maxlength='2'></textarea> /
+<textarea name="Y" rows="1" cols="4" maxlength='4'></textarea>
+
+<dt><input type=submit value="Submit" name="Submit"><input type=reset value="Clear" name="Clear">
+</fieldset>
+</form>
+
+{% endblock %} 
