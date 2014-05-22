@@ -7,17 +7,30 @@
 <form name=newAccount action="{{ url_for('adAccount') }}" method=POST>
 <fieldset>
 <legend>Account Data</legend>
-<dl>
-<dt>Title:<sml>3-15 characters</sml>
-<dt><textarea name="title" rows="1" cols="20"></textarea>
-<dt>Amount:
-<dt><textarea name="entVal" rows="1" cols="10" maxlength='10'></textarea>
-<dt>Date:
-<dt><textarea name="entM" rows="1" cols="2" maxlength='2'>MM</textarea> /
-<textarea name="entD" rows="1" cols="2" maxlength='2'>DD</textarea> /
-<textarea name="entY" rows="1" cols="4" maxlength='4'>YYYY</textarea>
-<dt>Low Value:
-<dt><textarea name="entLow" rows="1" cols="10" maxlength='10'>0</textarea>
+{{form.hidden_tag()}}
+
+
+Title:<sml>3-15 characters</sml>{% for error in form.errors.title %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+{{form.title(size=20)}}<br>
+
+
+Amount: {% for error in form.errors.entVal %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+{{form.entVal(size=10)}}<br>
+
+
+Date<sml> (YYYY-MM-DD)</sml>: {% for error in form.errors.entDate %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+{{form.entDate}}<br>
+
+Low Value: {% for error in form.errors.entLow %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+{{form.entLow(size=10)}}<br>
 <br>
 <dt><input type=submit value="Submit" name="Submit"><input type=reset value="Clear" name="Clear">
 </fieldset>

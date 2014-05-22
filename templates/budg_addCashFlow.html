@@ -7,49 +7,49 @@
 <form name=newCashFlow action="{{ url_for('adCashFlow') }}" method=POST>
 <fieldset>
 <legend>CashFlow Data</legend>
-<dl>
-<dt>Account:
-<dt>
-<select name="account">
-{% for account in acData %}
-	<option value={{account.id}}>{{account.title}} - {{account.entDate.date()}}</option>
-{% endfor %}
-</select>
+{{form.hidden_tag()}}
 
-<dt>Title:<sml>3-15 characters</sml>
-<dt><textarea name="title" rows="1" cols="20"></textarea>
-<dt>Amount:
-<dt><textarea name="entVal" rows="1" cols="10" maxlength='10'></textarea>
+Account: <br>
+{{form.account}}<br>
 
-<dt>Start Date (MM/DD/YYYY):
-<dt><textarea name="sM" rows="1" cols="2" maxlength='2'></textarea> /
-<textarea name="sD" rows="1" cols="2" maxlength='2'></textarea> /
-<textarea name="sY" rows="1" cols="4" maxlength='4'></textarea>
-
-<dt>End Date (MM/DD/YYYY):
-<dt><textarea name="eM" rows="1" cols="2" maxlength='2'></textarea> /
-<textarea name="eD" rows="1" cols="2" maxlength='2'></textarea> /
-<textarea name="eY" rows="1" cols="4" maxlength='4'></textarea>
-
-<dt>Recurring Period:
-<dt><textarea name="nRate" rows="1" cols="3" maxlength="3">1</textarea> : 
-<select name="nType">
-	<option value="Day">Day</option>
-	<option value="Week">Week</option>
-	<option value="Month">Month</option>
-</select>'s
-
-<dt>
-<form>
-	<input type="radio" name="estimate" value="estimate">Estimate<!-- need to fix this to be a boolean op-->
-	<br>
-	<input type="radio" name="estimate" value="known">Known
-</form>
+Title:<sml>3-15 characters</sml>{% for error in form.errors.title %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+{{form.title(size=20)}}<br>
 
 
+Amount: {% for error in form.errors.entVal %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+{{form.entVal(size=10)}}<br>
 
+
+Start Date<sml> (YYYY-MM-DD)</sml>: {% for error in form.errors.sDate %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+{{form.sDate}}<br>
+
+End Date<sml> (YYYY-MM-DD)</sml>: {% for error in form.errors.eDate %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+{{form.eDate}}<br>
+
+Recurring Type: {% for error in form.errors.rType %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+{{form.rType}}<br>
+
+Recur Rate: {% for error in form.errors.rRate %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}
+{{form.rRate}}<br>
+
+Estimate: {% for error in form.errors.entLow %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}
+{{form.est}}<br>
 <br>
-<dt><input type=submit value="Submit" name="Submit"><input type=reset value="Clear" name="Clear">
+<input type=submit value="Submit" name="Submit"><input type=reset value="Clear" name="Clear">
 </fieldset>
 </form>
 

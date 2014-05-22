@@ -33,7 +33,6 @@
 
 from budg_tables import CashFlow, Account
 from appHolder import db
-from server_validation import titleValidate, dateValidate, amountValidate, cfTitleValidate, rateValidate, typeValidate
 import unittest, datetime, inspect, types
 import sys, string, os, random
 
@@ -148,67 +147,6 @@ class functionTests(unittest.TestCase):
 
 
 
-def editAccount(aId,nTitle="",nVal="",nDate="",nLow=""):
-	'''edits an existing account to match the new values sent in'''
-	#this needs to be variable so that you can edit the name and/or value and/or date, etc
-	#check to make sure the title isn't being used
-	acc=Account.query.filter_by(id=aId).all()[0]
-	entVal=amountCompile(nVal)
-	lVal=amountCompile(nLow)
-	if nTitle!="":
-		if titleValidate(nTitle):
-			acc.title=nTitle.lower()
-		else:
-			return (False,"Title is incorrect")
-	if nVal!="":
-		if entVal!="False":
-			acc.entVal=nVal
-		else:
-			return (False,"Value is incorrect")
-	if nDate!="":
-		acc.entDate=nDate	#this gets checked in the budgPage
-	if nLow!="":
-		if lVal!="False":
-			acc.lowVal=nLow
-		else:
-			return (False,"Low Value is incorrect")
-	db.session.commit()
-	return (True,True)
-		
-def dateCompile(year,month,day):
-	'''takes in strings for year, month and day.  if they pass datevalidate returns
-	a datetime object, else returns false'''
-	if dateValidate(year,month,day):
-		return datetime.datetime(int(year),int(month),int(day))
-	else:
-		return False
-
-def amountCompile(amt):
-	if amountValidate(amt):
-		return int(amt)
-	else:
-		return "False"
-
-def accountCompile(nTitle,entVal,entY,entM,entD,lowVal=0):
-	'''#check all of the entered values, return a multi element tuple with the 
-	#compiled values if correct'''
-	entVal=amountCompile(entVal)
-	entDate=dateCompile(entY,entM,entD)
-	lowVal=amountCompile(lowVal)
-	if titleValidate(nTitle):
-		if entVal!="False":
-			if entDate!=False:
-				if lowVal!="False":
-					return (nTitle,entVal,entDate,lowVal)
-				else:
-					return (False,"LowVal is not a value")
-			else:	
-				return (False,"Entered date is a proper date in MM/DD/YYYY format")
-		else:
-			return (False,"Entered Value is not a value")
-	else:
-		return (False,"Title already exists or is not letters/numbers")
-		
 def addAccount(nTitle,entVal,entDate,lowVal=0):
 	'''creates and commits a new account, must first verify the name doesn't already exist'''
 	acc=Account(nTitle.lower(),entVal,entDate,lowVal)
@@ -227,45 +165,12 @@ def delCashFlow(nID):
 	cf=CashFlow.query.filter_by(id=nID).first()
 	db.session.delete(cf)
 	db.session.commit()
-		
-def cfCompile(account,nTitle,nValue,sY,sM,sD,nRType="false",nRRate=0,eY="blank",eM=0,eD=0,nEstimate=False):
-	'''a compilation function.  takes in all teh cashflow variables, validates they are in range and returns
-	a tuple containing True and the modified variables or False and the reason for failure'''
-	#account is the account ID
-	#title check (will take in accunt id and newTitle
-	#need a type check
-	#need a ratecheck
-	#need an estimate check
-	entVal=amountCompile(nValue)
-	sDate=dateCompile(sY,sM,sD)
-	
-	if eY!="blank": eDate=dateCompile(eY,eM,eD) #single expense
-	else: eDate=datetime.datetime.today()
-	
-	acc=Account.query.filter_by(id=account).first()
-	#typeValidate-returns true or false, use to validate only
-	#rate validate-returns true if number either positive or negative
-	#estimateValidate (not a user entry, will be a true/false input)
-	if cfTitleValidate(account,nTitle):
-		if typeValidate(nRType) or nRType=="false":
-			if sDate!=False:
-				if eDate!=False:
-					if entVal!="False":
-						if rateValidate(nRRate)!=False or (nRRate==0 and nRType=="false"):
-							return (account,nTitle,entVal,sDate,nRType,nRRate,eDate,nEstimate)
-						else: return (False,"Rate entered incorrectly")
-					else: return (False,"Value incorrect")
-				else: return (False,"End Date incorrect")
-			else: return (False,"Start Date incorrect")
-		else: return (False,"Type incorrect")
-	else: return (False,"Title incorrect")
 			
 def addCashFlow(account,nTitle,nValue,nDate,nRType,nRRate,nREnd,nEstimate=False):
 	'''adds a cashflow to a given account'''
 	cf=CashFlow(account,nTitle,nValue,nDate,nRType,nRRate,nREnd,nEstimate)
 	db.session.add(cf)
 	db.session.commit()
-	
 	
 def main():
 	from flask import Flask

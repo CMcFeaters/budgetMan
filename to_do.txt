@@ -1,6 +1,9 @@
+create a separate expense table
+	used for entering individual expenses
+
 Cashflows
 	revisit the adjustment, how deletion will affect cashflows
 	edit cashflows
 	display upcoming cashflows
 	display total cashflow cost up to date
-	java entry forms
+	
