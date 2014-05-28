@@ -6,9 +6,6 @@ from appHolder import db
 import unittest, datetime, inspect, types
 import sys, string, os
 
-
-
-
 '''remove these lines when done with debugging
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -124,15 +121,43 @@ class CashFlow(db.Model):
 		return (newCashFlow,newSeries)
 		
 	def __repr__(self):
-		disp=""
-		for thing in self:
-			disp=disp+thing+": "+str(getattr(self,thing))+"\n"
-		return disp#"%s %s %s"%(self.title,self.value,self.date)
+		return "Title: %s \nValue: %s \nRate: %s %ss"%(self.title,self.value, self.recurRate,self.recurType)
 
 	def __iter__(self):
 		#iterate the members of cashflow
 		return iter([attr[0] for attr in inspect.getmembers(self,not inspect.ismethod) if type(attr[1])!=types.MethodType and not attr[0].startswith("_")])
 
+class Expense(db.Model):
+	'''Single expense class
+		Contains the following properties-
+		id: primary key
+		account_id: foreign_key (one account to many expenses)
+		value: integer, the cost of the expense (+/-)
+		date: datetime, the datetime of the expense
+	'''
+	__tablename__="expenses"
+	
+	id=db.Column(db.Integer,primary_key=True)
+	account_id=db.Column(db.Integer,db.ForeignKey('accounts.id'))
+	title=db.Column(db.String)
+	value=db.Column(db.Integer)
+	date=db.Column(db.DateTime)
+	
+	def __init__(self,account_id,title,value,date=datetime.datetime.today()):
+		self.account_id=account_id
+		self.title=title
+		self.value=value
+		self.date=date
+
+		
+	def __repr__(self):
+		return "Title: %s \nValue: %s \nDate: %s"%(self.title,self.value,self.date)
+
+		
+	def __iter__(self):
+		#iterate the members of cashflow
+		return iter([attr[0] for attr in inspect.getmembers(self,not inspect.ismethod) if type(attr[1])!=types.MethodType and not attr[0].startswith("_")])
+		
 class Account(db.Model):
 	'''primary account class.  the account is setup with a title, a starting value, a starting date and a low value (used to execute warnings)
 	additionally cashflows can be linked to the account (separate table) and will be accessed by the account to display output values
@@ -310,7 +335,7 @@ class AccountTests(unittest.TestCase):
 			print thing
 			print "_____******______"
 
-
+		
 def main():
 	from flask import Flask
 	from flask.ext.sqlalchemy import SQLAlchemy
