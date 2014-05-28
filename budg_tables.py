@@ -162,9 +162,9 @@ class Account(db.Model):
 	'''primary account class.  the account is setup with a title, a starting value, a starting date and a low value (used to execute warnings)
 	additionally cashflows can be linked to the account (separate table) and will be accessed by the account to display output values
 	functions:
-	getExpenses-
+	getPayments-
 		takes in a end date, and start date.  returns an array of the expenses (cashflows) impacting teh account between the two dates
-	getExpenseValues
+	getPaymentValues
 		takes in a start and end date, returns the cash value of expenditures between the two dates
 	getRate-
 		give a type, a start date and an end date, returns the rate of expense/savings for the account on a type basis (day, month, week)
@@ -181,6 +181,7 @@ class Account(db.Model):
 	entDate=db.Column(db.DateTime)
 	lowVal=db.Column(db.Integer)
 	cashFlows=db.relationship("CashFlow",backref=db.backref("accounts",lazy="joined"),lazy="dynamic")	#link to cashflow table
+	expenses=db.relationship("Expense",backref=db.backref("accounts",lazy="joined"),lazy="dynamic")	#link to Expense table
 		
 	'''account class'''
 	def __init__(self,title,entVal,entDate=datetime.datetime.today(),lowVal=0):
@@ -189,37 +190,53 @@ class Account(db.Model):
 		self.entDate=entDate
 		self.lowVal=lowVal
 	
-	def getExpenses(self,endDate=datetime.datetime.today(),startDate=False):
-		'''returns a list continaing all of the epenses that will occur over a given period'''
+	def getPayments(self,endDate=datetime.datetime.today(),startDate=False):
+		'''returns a list continaing all of the payments that will occur over a given period for cashflows associated 
+		with this account and daterange
+		'''
 		if not startDate: startDate=self.entDate	#if a start date is not given, assume it's the account entered date
-		return [expense for cf in self.cashFlows for expense in cf.createSeries() if expense.date<=endDate and expense.date>=startDate]
+		return [payment for cf in self.cashFlows for payment in cf.createSeries() if payment.date<=endDate and payment.date>=startDate]
 	
-	def getExpenseValues(self,endDate=datetime.datetime.today(),startDate=False):
+	def getPaymentValues(self,endDate=datetime.datetime.today(),startDate=False):
 		'''given an accounts, start date and an end date, returns the total expenditure
 		s for the account between the two dates'''
 		if not startDate: startDate=self.entDate
+		paymentValue=0
+		for payment in self.getPayments(endDate,startDate):
+			if payment.date<=endDate and payment.date>=startDate: expValue+=payment.value
+		return paymentValue
+	
+	def getExpenses(self,endDate=datetime.datetime.today(),startDate=entDate):
+		return [exp for exp in self.expenses if exp.date<=endDate and exp.date>=startDate]
+	
+	def getExpenseValues(self,endDate=datetime.datetime.today(),startDate=False):
+		'''gets the value all of the expenses between the two dates given
+		defaults to entDate if startdate isn't given
+		'''
+		if not startDate: startDate=self.entDate
 		expValue=0
 		for expense in self.getExpenses(endDate,startDate):
-			if expense.date<=endDate and expense.date>=startDate: expValue+=expense.value
+			expValue+=expense.value
 		return expValue
+	
+	def getDateValue(self,endDate=datetime.datetime.today()):
+		'''returns a value containing the $ value of an account including all expenses up to endDate from entDate'''
+		return self.entVal+self.getPaymentValues(endDate)+self.getExpenseValues(endDate)
 	
 	def getRate(self,type,startDate,endDate):
 		'''determines your <type> cashflow rate between <startDate> and <endDate>'''
 		if type=="Day":		#daily expenses
-			return (self.getExpenseValues(endDate,startDate)/(endDate-startDate).days)
+			return (self.getPaymentValues(endDate,startDate)/(endDate-startDate).days)
 		elif type=="Week":	#weekly expenses
-			return (self.getExpenseValues(endDate,startDate)/(endDate-startDate).days)*7
+			return (self.getPaymentValues(endDate,startDate)/(endDate-startDate).days)*7
 		else:	#monthly expense
-			return self.getExpenseValues(endDate,startDate)/((endDate.year-startDate.year)*12+endDate.month-startDate.month)
+			return self.getPaymentValues(endDate,startDate)/((endDate.year-startDate.year)*12+endDate.month-startDate.month)
 	
-	def getDateValue(self,endDate=datetime.datetime.today()):
-		'''returns a value containing the $ value of an account including all expenses up to endDate from entDate'''
-		return self.entVal+self.getExpenseValues(endDate)
 	
 	def getEstimates(self,endDate,startDate=False):
 		#'''if startdate is false, account entered date is assumed'''
 		'''returns a list of all estimated cashflows between <startDate> and <endDate>'''
-		return [expense for expense in self.getExpenses(endDate,startDate) if expense.estimate]
+		return [expense for expense in self.getPayments(endDate,startDate) if expense.estimate]
 		
 	def __repr__(self):
 		disp=""
@@ -300,7 +317,7 @@ class AccountTests(unittest.TestCase):
 		result=db.session.query(Account)
 		acc=result.all()[0]
 		
-		for bill in acc.getExpenses(datetime.datetime(2014,3,24)):
+		for bill in acc.getPayments(datetime.datetime(2014,3,24)):
 			print "Title: "+bill.title+" Date: "+str(bill.date)+" - Amount: "+str(bill.value)
 		
 		#session.close()

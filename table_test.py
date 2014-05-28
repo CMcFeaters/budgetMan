@@ -47,6 +47,16 @@ class expenseTests(unittest.TestCase):
 class accountTests(unittest.TestCase):
 	'''tests run on the account to verify random things are working
 	'''
+	
+	def create_a_thing(self,table,args):
+		'''a function that will create a "thing"
+		the thing will be an Account, Expense or any other budget related object
+		the args will be the parameters required
+		assume the user knows what the hell he is doing'''
+		thing=table(*args)
+		db.session.add(thing)
+		db.session.commit()
+		
 	def test001_displayAccounts(self):
 		'''test to display available accounts and their expense data
 		'''
@@ -71,8 +81,7 @@ class accountTests(unittest.TestCase):
 		'''gives account total based on expenses using getDateValue
 		'''
 		if db.session.query(Account).filter_by(title="TESTACCOUNT").all()==[]:
-			db.session.add(Account("TESTACCOUNT",100))
-			db.session.commit()
+			self.create_a_thing(Account,["TESTACCOUNT",100])
 		acc=db.session.query(Account).filter_by(title="TESTACCOUNT").all()[0]
 		
 		if db.session.query(Expense).filter_by(title="TESTEXPENSE",account_id=acc.id).all()==[]:
