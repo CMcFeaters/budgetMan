@@ -16,6 +16,17 @@ db = SQLAlchemy(app)
 db.create_all()
 '''
 
+def transfers(db.Table('transfers',db.Column
+
+
+def create_a_thing(table,args):
+	'''a function that will create a "thing"
+	the thing will be an Account, Expense or any other budget related object
+	the args will be the parameters required
+	assume the user knows what the hell he is doing'''
+	thing=table(*args)
+	db.session.add(thing)
+	db.session.commit()
 
 class dateRange():
 	'''an array of all days between two dates'''
@@ -172,17 +183,21 @@ class Transfer(db.Model):
 	
 	id=db.Column(db.Integer,primary_key=True)
 	f_account_id=db.Column(db.Integer,db.ForeignKey('accounts.id'))
-	t_account_id=db.Column(db.Integer,db.ForeignKey('acconts.id'))
+	t_account_id=db.Column(db.Integer,db.ForeignKey('accounts.id'))
 	title=db.Column(db.String)
 	value=db.Column(db.Integer)
 	date=db.Column(db.DateTime)
 	
-	def __init__(self,f_account_id,t_account_id,title,value,date):
+	def __init__(self,title,value,f_account_id,t_account_id,date=datetime.datetime.today()):
 		self.f_account_id=f_account_id
 		self.t_account_id=t_account_id
 		self.title=title
 		self.value=value
 		self.date=date
+	
+	def __repr__(self):
+		return "Title: %s \nValue: %s \nDate: %s\n to Acc: %s\n from Acc: %s"%(self.title,self.value,self.date, self.t_account_id,self.f_account_id)
+
 	
 class Account(db.Model):
 	'''primary account class.  the account is setup with a title, a starting value, a starting date and a low value (used to execute warnings)
@@ -208,6 +223,7 @@ class Account(db.Model):
 	lowVal=db.Column(db.Integer)
 	cashFlows=db.relationship("CashFlow",backref=db.backref("accounts",lazy="joined"),lazy="dynamic")	#link to cashflow table
 	expenses=db.relationship("Expense",backref=db.backref("accounts",lazy="joined"),lazy="dynamic")	#link to Expense table
+	transfers=db.relationship("Transfer",backref=db.backref("accounts",lazy="joined"),lazy="dynamic")	#link to transfer table
 		
 	'''account class'''
 	def __init__(self,title,entVal,entDate=datetime.datetime.today(),lowVal=0):
