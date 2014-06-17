@@ -169,7 +169,11 @@ class Expense(db.Model):
 		#iterate the members of cashflow
 		return iter([attr[0] for attr in inspect.getmembers(self,not inspect.ismethod) if type(attr[1])!=types.MethodType and not attr[0].startswith("_")])
 
-
+'''Exchange=db.Table('exchanges',
+	db.Column('to_account_id',db.Integer,db.ForeignKey('account.id'))
+	db.Column('from_account_id',db.Integer,db.ForeignKey('account.id')),
+	)#a helper table used to keep track of transfers between accounts'''
+	
 class Transfer(db.Model):
 	'''transfer is an expense from one account to another
 	ex: paying your credit card bill, cc account decreases, debit account decreases
@@ -182,11 +186,10 @@ class Transfer(db.Model):
 	__tablename__="transfers"
 	
 	id=db.Column(db.Integer,primary_key=True)
-	f_account_id=db.Column(db.Integer,db.ForeignKey('accounts.id'))
-	t_account_id=db.Column(db.Integer,db.ForeignKey('accounts.id'))
 	title=db.Column(db.String)
 	value=db.Column(db.Integer)
 	date=db.Column(db.DateTime)
+	f_account_id=db.Column(db.Integer, foreign_keys=account_id)
 	
 	def __init__(self,title,value,f_account_id,t_account_id,date=datetime.datetime.today()):
 		self.f_account_id=f_account_id
