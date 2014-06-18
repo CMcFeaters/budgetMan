@@ -16,9 +16,6 @@ db = SQLAlchemy(app)
 db.create_all()
 '''
 
-def transfers(db.Table('transfers',db.Column
-
-
 def create_a_thing(table,args):
 	'''a function that will create a "thing"
 	the thing will be an Account, Expense or any other budget related object
@@ -189,7 +186,11 @@ class Transfer(db.Model):
 	title=db.Column(db.String)
 	value=db.Column(db.Integer)
 	date=db.Column(db.DateTime)
-	f_account_id=db.Column(db.Integer, foreign_keys=account_id)
+	f_account_id=db.Column(db.Integer, db.ForeignKey("accounts.id"))
+	t_account_id=db.Column(db.Integer, db.ForeignKey("accounts.id"))
+	
+	f_account=db.relationship("Account",foreign_keys=f_account_id)
+	t_account=db.relationship("Account", foreign_keys=t_account_id)
 	
 	def __init__(self,title,value,f_account_id,t_account_id,date=datetime.datetime.today()):
 		self.f_account_id=f_account_id
