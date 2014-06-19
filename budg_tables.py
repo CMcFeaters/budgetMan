@@ -166,10 +166,6 @@ class Expense(db.Model):
 		#iterate the members of cashflow
 		return iter([attr[0] for attr in inspect.getmembers(self,not inspect.ismethod) if type(attr[1])!=types.MethodType and not attr[0].startswith("_")])
 
-'''Exchange=db.Table('exchanges',
-	db.Column('to_account_id',db.Integer,db.ForeignKey('account.id'))
-	db.Column('from_account_id',db.Integer,db.ForeignKey('account.id')),
-	)#a helper table used to keep track of transfers between accounts'''
 	
 class Transfer(db.Model):
 	'''transfer is an expense from one account to another
@@ -189,8 +185,10 @@ class Transfer(db.Model):
 	f_account_id=db.Column(db.Integer, db.ForeignKey("accounts.id"))
 	t_account_id=db.Column(db.Integer, db.ForeignKey("accounts.id"))
 	
-	f_account=db.relationship("Account",foreign_keys=f_account_id)
-	t_account=db.relationship("Account", foreign_keys=t_account_id)
+	f_account=db.relationship("Account",foreign_keys=f_account_id,
+		primaryjoin=("Transfer.f_account_id==Account.id"))
+	t_account=db.relationship("Account", foreign_keys=t_account_id,
+		primaryjoin=("Transfer.t_account_id==Account.id"))
 	
 	def __init__(self,title,value,f_account_id,t_account_id,date=datetime.datetime.today()):
 		self.f_account_id=f_account_id
@@ -201,6 +199,7 @@ class Transfer(db.Model):
 	
 	def __repr__(self):
 		return "Title: %s \nValue: %s \nDate: %s\n to Acc: %s\n from Acc: %s"%(self.title,self.value,self.date, self.t_account_id,self.f_account_id)
+
 
 	
 class Account(db.Model):
@@ -227,7 +226,7 @@ class Account(db.Model):
 	lowVal=db.Column(db.Integer)
 	cashFlows=db.relationship("CashFlow",backref=db.backref("accounts",lazy="joined"),lazy="dynamic")	#link to cashflow table
 	expenses=db.relationship("Expense",backref=db.backref("accounts",lazy="joined"),lazy="dynamic")	#link to Expense table
-	transfers=db.relationship("Transfer",backref=db.backref("accounts",lazy="joined"),lazy="dynamic")	#link to transfer table
+	
 		
 	'''account class'''
 	def __init__(self,title,entVal,entDate=datetime.datetime.today(),lowVal=0):
