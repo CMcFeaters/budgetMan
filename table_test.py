@@ -103,11 +103,23 @@ class test4_cashFlowTests(unittest.TestCase):
 		ind_cf=cf.createSeries()[0]
 		
 		create_a_thing(Actual,[cf.id,cf.title+"_"+str(ind_cf.date.date()),-90,ind_cf.date,today])
-		estimate=db.session.query(Actual).all()[0]
-		print "*************"
-		print cf
-		print "*************"
-		print estimate
+		actual=db.session.query(Actual).all()[0]
+		#the new series value which we replaced should reflect the estamate value
+		
+		if cf.createSeries()[0].value==actual.value and cf.createSeries()[0].date==actual.date:
+			print "**CASHFLOW[0]**"
+			print cf.createSeries()[0]
+			print "**ACTUAL**"
+			print actual
+			self.assertTrue(True)
+		else:
+			print "**CASHFLOW[0]**"
+			print cf.createSeries()[0]
+			print "**ACTUAL**"
+			print actual
+			self.assertTrue(False)
+			
+
 		
 		
 class test5_checkSum(unittest.TestCase):

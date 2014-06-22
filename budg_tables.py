@@ -225,13 +225,15 @@ class CashFlow(db.Model):
 		else:
 			series=[CashFlow(self.account_id,self.title,self.value,self.date,False,estimate=self.estimate)]
 			
-		'''if series[0].estimate:
+		if self.estimate:
 			for cf in series:
 				#replace all of the estimated values with actual values
-				for actual in actuals:
+				for actual in self.actuals:
 					#compare the dates, replace if necessary
-					if actual.cf_date==cf.date
-		'''		
+					if actual.cf_date==cf.date:
+						series[series.index(cf)].date=actual.date
+						series[series.index(cf)].value=actual.value
+				
 			
 		return series
 	def __repr__(self):
