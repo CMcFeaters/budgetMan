@@ -145,8 +145,6 @@ class functionTests(unittest.TestCase):
 			print thing
 			print "_____******______"
 
-
-
 def addAccount(nTitle,entVal,entDate,lowVal=0):
 	'''creates and commits a new account, must first verify the name doesn't already exist'''
 	acc=Account(nTitle.lower(),entVal,entDate,lowVal)

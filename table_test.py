@@ -1,60 +1,64 @@
 from appHolder import db
 import unittest, datetime, sys, os
-from budg_tables import create_a_thing,Account, CashFlow, Expense#, Transfer,Expense
+from random import randint
+from budg_tables import create_a_thing,Account, CashFlow, Expense, Transfer, Actual
 
 '''this file runs some tests on the budget tables created
 '''
 
-class expenseTests(unittest.TestCase):
+
+class test1_accountTests(unittest.TestCase):
+	'''tests run on the account to verify random things are working
+	'''
+
+	def test001_addAccount(self):
+		'''adds an account
+		'''
+		name="TESTACCOUNT"+str(randint(0,100))
+		create_a_thing(Account,[name,100])
+			
+		self.assertTrue(db.session.query(Account).filter_by(title=name).all()!=[])
+
 	
-	def deleteDB(self):
-		path="C:\\Users\Charles\Dropbox\Programming\DataBases\\budget.db"
-		if os.path.exists(path):
-			os.remove(path)
+	def test002_displayAccounts(self):
+		'''test to display available accounts and their expense data
+		'''
+		accs=db.session.query(Account)
+		for acc in accs:
+			print '--------------------'
+			print acc
+			
+		
+		self.assertTrue(True)
+			
+class test2_expenseTests(unittest.TestCase):
 	
 	def test001_addExpense(self):		
 		#create an account
+		name="TestExpense"+str(randint(0,100))
 		acc=db.session.query(Account).all()[0]
-		exp=Expense(acc.id, "TestExpense",5,datetime.datetime.today())
-		#session=self.createDB()
-		db.session.add(exp)
-		db.session.commit()	#add the entry to the db
-		self.assertTrue(True)
+		create_a_thing(Expense,[acc.id,name,5,datetime.datetime.today()])
+		self.assertTrue(db.session.query(Expense).filter_by(title=name).all()!=[])
 	
-	def _test002_displayExpenses(self):
-		acc=db.session.query(Account).all()[0]
-		exp=db.session.query(Expense).all()[0]
-		print '--------------------'
-		print exp
+	def test002_displayExpenses(self):
+		#acc=db.session.query(Account).all()[0]
+		exps=db.session.query(Expense).all()
+		for exp in exps:
+			print '--------------------'
+			print exp
 		self.assertTrue(True)
-	
-	
-	def _test999_deleteDB(self):
-		db.session.close()
-		self.deleteDB()
-		print "deleted"
-		self.assertTrue(True)
-		
-	def printAccounts(self):
-		results=db.session.query(Account)
-		
-		for thing in results:
-			print "_____******______"
-			print thing
-			print "_____******______"
 
-'''class transferTests(unittest.TestCase):
-	
-	def deleteDB(self):
-		path="C:\\Users\Charles\Dropbox\Programming\DataBases\\budget.db"
-		if sys.path.exists(path):
-			sys.remove(path)
-	
+class test3_transferTests(unittest.TestCase):
+
 	def test001_addTransfer(self):		
 		#create an account
-		acc1=db.session.query(Account).all()[0]
-		acc2=db.session.query(Account).all()[1]
-		budg_tables.create_a_thing(Transfer,['TestTransfer',50,acc1.id,add2.id,datetime.datetime.today()])
+		acc=db.session.query(Account).all()
+		if len(acc)<2:
+			create_a_thing(Account,["TESTACCOUNT"+str(randint(0,100)),100])
+			acc=db.session.query(Account).all()
+		acc1=acc[0]
+		acc2=acc[1]
+		create_a_thing(Transfer,['TestTransfer'+str(randint(0,100)),50,acc1.id,acc2.id,datetime.datetime.today()])
 
 		self.assertTrue(True)
 	
@@ -63,66 +67,119 @@ class expenseTests(unittest.TestCase):
 		tf=db.session.query(Transfer).all()[0]
 		print '--------------------'
 		print tf
+		print tf.date.date()
 		self.assertTrue(True)
+
+class test4_cashFlowTests(unittest.TestCase):
+	'''
+	tests run to verify the cashflows are working
+	'''
+	def test001_addCashFlow(self):		
+		#create an account
+		name="TestCashFlow"+str(randint(0,100))
+		acc=db.session.query(Account).all()[0]
+		oneYear=datetime.datetime.today()+datetime.timedelta(365)
+		create_a_thing(CashFlow,[acc.id,name,500,datetime.datetime.today(),"Day",10,oneYear])
+		self.assertTrue(db.session.query(CashFlow).filter_by(title=name).all()!=[])
 	
-	
-	def _test999_deleteDB(self):
-		db.session.close()
-		self.deleteDB()
-		print "deleted"
+	def test002_displayCashFlow(self):
+		#acc=db.session.query(Account).all()[0]
+		cfs=db.session.query(CashFlow).all()
+		for cf in cfs:
+			print '--------------------'
+			print cf
 		self.assertTrue(True)
 		
-	def printAccounts(self):
-		results=db.session.query(Account)
+	def test003_estimateTest(self):
+		'''
+		this will test the ability of the cashflow to create an associated estimate
+		'''
+		today=datetime.datetime.today()
+		oneYear=today+datetime.timedelta(365)
 		
-		for thing in results:
-			print "_____******______"
-			print thing
-			print "_____******______"
-'''
-			
-			
-class accountTests(unittest.TestCase):
+		acc=db.session.query(Account).all()[0]
+		create_a_thing(CashFlow,[acc.id,"Groceries",-100,datetime.datetime.today(),"Week",1,oneYear,True])
+		cf=db.session.query(CashFlow).filter_by(title="Groceries").all()[0]
+		ind_cf=cf.createSeries()[0]
+		
+		create_a_thing(Actual,[cf.id,cf.title+"_"+str(ind_cf.date.date()),-90,ind_cf.date,today])
+		estimate=db.session.query(Actual).all()[0]
+		print "*************"
+		print cf
+		print "*************"
+		print estimate
+		
+		
+class test5_checkSum(unittest.TestCase):
 	'''tests run on the account to verify random things are working
 	'''
-
-		
-	def test001_displayAccounts(self):
-		'''test to display available accounts and their expense data
-		'''
-		accs=db.session.query(Account)
-		for acc in accs:
-			print "----Account----"
-			print ">"+acc.title
-			
-			exps=db.session.query(Expense).filter_by(account_id=acc.id)
-			print "----Expenses----"
-			for exp in exps:
-				print ">"+exp.title
-
-			cfs=db.session.query(CashFlow).filter_by(account_id=acc.id)
-			print "----CashFlows----"
-			for cf in cfs:
-				print ">"+cf.title
-		
-		self.assertTrue(True)
-			
-	def test002_addAccount(self):
-		'''gives account total based on expenses using getDateValue
-		'''
-		if db.session.query(Account).filter_by(title="TESTACCOUNT").all()==[]:
-			create_a_thing(Account,["TESTACCOUNT",100])
-		acc=db.session.query(Account).filter_by(title="TESTACCOUNT").all()[0]
-		
-		'''if db.session.query(Expense).filter_by(title="TESTEXPENSE",account_id=acc.id).all()==[]:
-			db.session.add(Expense(acc.id,"TESTEXPENSE",-50))
-			db.session.commit()
-		
-		exp=db.session.query(Expense).filter_by(title="TESTEXPENSE",account_id=acc.id).all()[0]
-		'''
-		self.assertTrue(True)
-		
+	tomorrow=datetime.datetime.today()+datetime.timedelta(1)	#a date for summing purposes
 	
+	def test001_checkExpenses(self):
+		'''this function will validate the expense values are totaled in the getExpense function
+		'''
+		accs=db.session.query(Account).all()
+		exps=db.session.query(Expense)
+		for acc in accs:
+			total=0
+			exps_a=exps.filter_by(account_id=acc.id).all() #all expenses associated with acc
+			for exp in exps_a:
+				total+=exp.value
+			if total!=acc.getExpenseValues(self.tomorrow): 
+				print "Manual total: %s"%total
+				print "Automat total: %s"%acc.getExpenseValues(self.tomorrow)
+				self.assertTrue(False)
+		
+		self.assertTrue(True)
+	
+	def test002_checkTransfers(self):
+		'''
+		test to validate the transfers are effecting the accounts as they should be
+		'''
+		tfs=db.session.query(Transfer).all()
+		accs=db.session.query(Account).all()
+		#db.session.query(Transfer).filter_by(f_account_id=accs[0].id).all() 
+		for thing in accs:
+			print "*************"
+			print "Account: %s"%thing.id
+			print thing.getTransfers()
+			print thing.getTransferValues()
+		self.assertTrue(True)
+
+	def test003_checkAll(self):
+		'''
+		this function checks to verify all of the items affecting an account are tallied up in 
+		the account datevalue function
+		'''
+		exps=db.session.query(Expense).all()
+		cfs=db.session.query(CashFlow).all()
+		tfs=db.session.query(Transfer).all()
+		accs=db.session.query(Account).all()
+		oneYear=datetime.datetime.today()+datetime.timedelta(365)
+		for acc in accs:
+			transTotal=acc.getTransferValues(oneYear)[0]+acc.getTransferValues(oneYear)[1]
+			cfTotal=acc.getPaymentValues(oneYear)
+			expsTotal=acc.getExpenseValues(oneYear)
+			
+			if acc.getDateValue(oneYear)!=acc.entVal+expsTotal+transTotal+cfTotal: self.assertTrue(False)
+			else: 
+				print "*****************"
+				print "Account: %s"%acc.title
+				print "Value: %s"%acc.getDateValue(oneYear)
+				print "Start Amount: %s"%acc.entVal
+				print "Total transfered: %s"%transTotal
+				print "Total CashFlow: %s"%cfTotal
+				print "Total Expense: %s"%expsTotal
+		
+		self.assertTrue(True)
+		
+			
+def clear_test_db():
+	path="C:\\Users\Charles\Dropbox\Programming\DataBases\\budget.db"
+	if os.path.exists(path):
+		os.remove(path)
+	db.create_all()
+			
 def main():
 	'''from flask import Flask
 	from flask.ext.sqlalchemy import SQLAlchemy
@@ -130,10 +187,7 @@ def main():
 	app = Flask(__name__)
 	app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////'+path
 	db = SQLAlchemy(app)'''
-	path="C:\\Users\Charles\Dropbox\Programming\DataBases\\budget.db"
-	if os.path.exists(path):
-		os.remove(path)
-	db.create_all()
+	clear_test_db()
 	unittest.main()
 	
 if __name__=="__main__":
