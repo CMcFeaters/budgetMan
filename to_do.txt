@@ -2,9 +2,16 @@ X create a separate expense table used for entering individual expenses
 Xupdate tables accounts to take in both cashflows and expenses
 
 XCreate a transfers table for transfers from one accoutn to another (checking-credit, checking to savings, etc)
-Update accounts to take into account transfers cashflows and expenses
+XUpdate accounts to take into account transfers cashflows and expenses
 
-Cashflows
+
+User interface
+-Add expenses
+-Display expenses
+-remove expenses
+-edit expenses
+
+XCashflows
 	revisit the adjustment, how deletion will affect cashflows
 	edit cashflows
 	display upcoming cashflows

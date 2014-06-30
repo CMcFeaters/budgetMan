@@ -33,7 +33,18 @@ def before_date_check(form,field):
 		raise(ValidationError('Start Date (%s) occurs after the end date (%s)'%(form.sDate.data,form.eDate.data)))
 	elif form.sDate.data==form.eDate.data:
 		raise(ValidationError('Start Date = end date (%s). should be a single expense'%(form.sDate.data)))
+
+def titleLengthCheck(min=0,max=0):
+	#checks to verify the title is the appropriate length
+	message="Must be between %d and %d characters long."%(min,max)
 	
+	def _lenCheck(form,field):
+		t=form.data and len(form.data) or 0
+		if t<min or max!=-1 and t>max:
+			raise ValidationError(message)
+	
+	return _lenCheck
+		
 	
 class addAccountForm(Form):
 	#a form for adding accounts
@@ -41,6 +52,14 @@ class addAccountForm(Form):
 	entVal=IntegerField('entVal',validators=[Required()])
 	entDate=DateField('entDate',validators=[Required()])
 	entLow=IntegerField('entLow', validators=[Required()])
+
+class addExpenseForm(Form):
+	'''adds an expense form'''
+	account=SelectField('account',coerce=int)
+	title=TextField('title',validators=[Required(),titleLengthCheck(min=3,max=15)])
+	eDate=DateField('eDate',validators=[Required()])
+	entVal=IntegerField('entVal',validators=[Required()])
+	
 	
 class addCashFlowForm(Form):
 	account=SelectField('account',coerce=int)

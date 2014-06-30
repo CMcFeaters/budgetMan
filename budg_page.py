@@ -3,7 +3,7 @@
 #uses flask to create working page
 
 from budg_functions import delAccount, addAccount, addCashFlow, delCashFlow
-from budg_tables import Account, CashFlow
+from budg_tables import Account, CashFlow, Expense, Actual, Transfer, create_a_thing
 import forms 
 from appHolder import db, app
 import datetime
@@ -78,21 +78,17 @@ def adAccount():
 
 @app.route('/adExpense',methods=['GET','POST'])
 def adExpense():
-	'''add cashflow, but for a single expense'''
-	if request.method=='POST': 
-		#the form data has been posted
-		#run the compile/validate procedure
-		cfRes=cfCompile(request.form['account'],request.form['title'],request.form['entVal'],request.form['Y'],request.form['M'],request.form['D'])
-		#error check and create
-		if cfRes[0]==False:
-			flash(cfRes[1])
-		else:
-			addCashFlow(cfRes[0],cfRes[1],cfRes[2],cfRes[3],cfRes[4],cfRes[5],cfRes[6],cfRes[7])
-			return redirect(url_for('welcome'))
+	'''add a single expense to an account'''
+	form=forms.addExpenseForm()	#set up theform
+	form.account.choices=[(acc.id,acc.title) for acc in Account.query.order_by('title')]
+	if form.validate_on_submit(): 
+		#if the form data is validated
+		create_a_thing(Expense,[form.account.data,form.title.data,form.entVal.data,form.eDate.data])
+		return redirect(url_for('welcome'))
 	
 	#send in the accounts to populate the dropdown menu
-	acData=Account.query.all()
-	return render_template('budg_addExpense.html',acData=acData)
+	
+	return render_template('budg_addExpense.html',form=form)
 
 	
 @app.route('/adCashFlow',methods=['GET','POST'])
@@ -101,13 +97,8 @@ def adCashFlow():
 	form=forms.addCashFlowForm()
 	form.account.choices=[(acc.id,acc.title) for acc in Account.query.order_by('title')]
 	if form.validate_on_submit(): 
-		print type(form.sDate.data)
-		print form.sDate.data
-		print type(datetime.datetime.combine(form.sDate.data,datetime.time.min))
+		create_a_thing(####RIGHT HERE####
 		
-		addCashFlow(form.account.data,form.title.data,form.entVal.data, \
-		datetime.datetime.combine(form.sDate.data,datetime.time.min), \
-		form.rType.data,form.rRate.data,datetime.datetime.combine(form.eDate.data,datetime.time.min),form.est.data)
 		
 		return redirect(url_for('welcome'))
 	

@@ -212,7 +212,7 @@ class CashFlow(db.Model):
 		cfRange=dateRange(self.date,self.recurEnd)	#the date range for the cashflow
 
 		#generate remaining recurring entries in a similar fasion
-		#>>>insert estimate links here
+		#>>>insert estima6+te links here
 		if self.recurType=="Day" and self.recurRate>0:
 			series=[CashFlow(self.account_id,self.title,self.value,pDate,False,estimate=self.estimate)
 			for pDate in cfRange if ((pDate-self.date).days)%self.recurRate==0]

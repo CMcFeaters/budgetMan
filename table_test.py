@@ -61,7 +61,7 @@ class test3_transferTests(unittest.TestCase):
 		create_a_thing(Transfer,['TestTransfer'+str(randint(0,100)),50,acc1.id,acc2.id,datetime.datetime.today()])
 
 		self.assertTrue(True)
-	
+		
 	def test002_displayTransfer(self):
 		#acc=db.session.query(Account).all()[0]
 		tf=db.session.query(Transfer).all()[0]
@@ -69,6 +69,10 @@ class test3_transferTests(unittest.TestCase):
 		print tf
 		print tf.date.date()
 		self.assertTrue(True)
+		
+	def test003_reverseTrackTransfer(self0:
+		'''a test to find the transfers associated with an account'''
+		pass
 
 class test4_cashFlowTests(unittest.TestCase):
 	'''
