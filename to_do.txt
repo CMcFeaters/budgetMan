@@ -6,14 +6,14 @@ XUpdate accounts to take into account transfers cashflows and expenses
 
 
 User interface
--Add expenses
--Display expenses
+X-Add expenses
+X-add cashflows
+
+-Display account data
+	-expenses
+	-cashflows
+	-transfers
 -remove expenses
 -edit expenses
 
-XCashflows
-	revisit the adjustment, how deletion will affect cashflows
-	edit cashflows
-	display upcoming cashflows
-	display total cashflow cost up to date
-	
+

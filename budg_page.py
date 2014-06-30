@@ -97,9 +97,9 @@ def adCashFlow():
 	form=forms.addCashFlowForm()
 	form.account.choices=[(acc.id,acc.title) for acc in Account.query.order_by('title')]
 	if form.validate_on_submit(): 
-		create_a_thing(####RIGHT HERE####
-		
-		
+		create_a_thing(CashFlow,[form.account.data,form.title.data,form.entVal.data,form.sDate.data,\
+			form.rType.data,form.rRate.data,form.eDate.data,form.est.data])
+			
 		return redirect(url_for('welcome'))
 	
 	return render_template('budg_addCashFlow.html',form=form)
