@@ -64,6 +64,7 @@ def edAccount(id):
 			return redirect(url_for('welcome'))
 	return render_template('budg_editAccount.html',accData=accData)
 
+####this needs to be fixed
 @app.route('/adAccount',methods=['GET','POST'])
 def adAccount():
 	'''adds an account'''
@@ -120,12 +121,18 @@ def displayAccount(acData):
 	if request.method=='POST':
 		#something was posted
 		acData=Account.query.filter_by(id=request.form['account']).first()		
-		cfData=CashFlow.query.filter_by(account_id=request.form['account']).all()
+		cfData=acData.cashFlows
+		expData=acData.expenses
+		tfData=acData.getTransfers()	#[(tfIn,tfOut)]
 	else:
-		cfData=CashFlow.query.filter_by(account_id=acData.id).all()
+		cfData=acData.cashFlows
+		expData=acData.expenses
+		tfData=acData.getTransfers()	#[(tfIn,tfOut)]
 		
 	#otherwise we return with the option to select the accoutn data
-	return render_template('budg_account_data.html',acData=acData,ddList=ddList,cfData=cfData,tDate=datetime.date.today())
+	return render_template('budg_account_data.html',acData=acData,\
+		ddList=ddList,cfData=cfData,expData=expData,\
+		trfData=tfData,tDate=datetime.date.today())
 
 
 #simple python scripts made part of jinja template

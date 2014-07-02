@@ -7,9 +7,10 @@
         removes all inner html from ul
         
         */
-    function show_data(cfID,accID, value,rRate,rType,est,endDate) {
+    function show_cfData(cfID,accID, value,rRate,rType,est,endDate) {
         var list = document.getElementById("cf_"+cfID);
         //alert(list.innerHTML);
+
         if (list.innerHTML == "") {
             //fill in 
             //alert("<sml><a href=\"{{ url_for('deleteCashFlow',id="+cfID+",accID=" + accID + ") }}\">delete</a></sml>");
@@ -25,47 +26,76 @@
         }
     }
 
+    function show_expData(expID,accID,value,eDate) {
+        var list = document.getElementById("exp_"+expID);
+        //alert(list.innerHTML);
+
+        if (list.innerHTML == "") {
+            
+            list.innerHTML = '<li>Value: ' + value + '</li>'
+                + ' </li><li>Date: ' + eDate.toString() + '</li>';
+               // + "<sml><a href=\"{{ url_for('deleteCashFlow',id=0,accID=0)}}\">delete</a></sml>".replace('/00','/'+cfID+accID);
+                //+ ;
+        }
+        else {
+            list.innerHTML="";
+        }
+}
 
 </script>
 
 
 <fieldset><center><a href="{{ url_for('welcome') }}">Home</a> </center></fieldset>
 <!--ADD Select Account-->
-<form name=accountSelect action="{{ url_for('displayAccount',acData='something') }}" method=POST >
-<fieldset >
-<legend>Select an account</legend>
-<dt>Account: 
-<select name="account"><dl>
-{% for account in ddList %}
-	<option value={{account.id}}>{{account.title}}</option>
-{% endfor %}
-</select>
-<br>
-<input type=submit value="Submit" name="Submit">
-</fieldset>
-</form>
+    <form name=accountSelect action="{{ url_for('displayAccount',acData='something') }}" method=POST >
+    <fieldset >
+    <legend>Select an account</legend>
+    <dt>Account: 
+    <select name="account"><dl>
+    {% for account in ddList %}
+    	<option value={{account.id}}>{{account.title}}</option>
+    {% endfor %}
+    </select>
+    <br>
+    <input type=submit value="Submit" name="Submit">
+    </fieldset>
+    </form>
 
 <!--Display Account Data-->
-<fieldset>
-<legend>{{acData.title}} Data</legend>
+    <fieldset>
+    <legend>{{acData.title}} Data</legend>
 
-<ul class=results>
-<li><h2>{{acData.title}}</h2>
-Value: {{acData.getDateValue()}}
-<br>
-As of: {{tDate}}
-</ul>
+    <ul class=results>
+    <li><h2>{{acData.title}}</h2>
+    Value: {{acData.getDateValue()}}
+    <br>
+    As of: {{tDate}}
+    </ul>
 
 <!--Display Cashflow Data-->
-CashFlows:<br>
-{% for cf in cfData %}
-><a href="javascript:show_data('{{cf.id}}','{{cf.account_id}}','{{cf.value}}','{{cf.recurRate}}','{{cf.recurType}}','{{cf.estimate}}','{{cf.recurEnd.date()}}');">{{cf.title}}</a><br>
-<ul id="cf_{{cf.id}}" s></ul>
+    CashFlows:<br>
+        {% for cf in cfData %}
+        ><a href="javascript:show_cfData('{{cf.id}}','{{cf.account_id}}','{{cf.value}}','{{cf.recurRate}}','{{cf.recurType}}','{{cf.estimate}}','{{cf.recurEnd.date()}}');">{{cf.title}}</a><br>
+        <ul id="cf_{{cf.id}}"></ul>
 
-{% else %}
-<em>Nothing to report chief</em></li>
+        {% else %}
+            <em>Nothing to report chief</em></li><br>
 
-{% endfor %}
+        {% endfor %}
+
+<!--Display Expenses Data-->
+    Expenses:<br>
+    {% for exp in expData %}
+    ><a href="javascript:show_expData('{{exp.id}}','{{exp.account_id}}','{{exp.value}}','{{exp.date.date()}}');">{{exp.title}}</a><br>
+    <ul id="exp_{{exp.id}}"></ul>
+
+    {% else %}
+        <em>Nothing to report chief</em></li><br>
+
+    {% endfor %}
+
+<!--Display Transfer Data-->
+
 
 </fieldset>
 
