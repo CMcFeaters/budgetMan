@@ -2,7 +2,7 @@
 #webpage
 #uses flask to create working page
 
-from budg_functions import delAccount, addAccount, addCashFlow, delCashFlow
+from budg_functions import delAccount, delCashFlow
 from budg_tables import Account, CashFlow, Expense, Actual, Transfer, create_a_thing
 import forms 
 from appHolder import db, app
@@ -20,13 +20,15 @@ def welcome():
 @app.route('/deleteAccount/<title>')
 def deleteAccount(title):
 	#standard welcome, you're logged in or you're not
-	delAccount(title)
+	db.session.delete(Account.query.filter_by(title=nTitle).first())
+	db.session.commit()
 	return redirect(url_for('welcome'))
 
 @app.route('/deleteCashFlow/<id><accID>')
 def deleteCashFlow(id,accID):
 	#deletes the selected cashflow
-	delCashFlow(id)
+	db.session.delete(CashFlow.query.filter_by(id=nID).first())
+	db.session.commit()
 	#print Account.query.filter_by(id=accID).first()
 	
 	
@@ -36,44 +38,39 @@ def deleteCashFlow(id,accID):
 def edAccount(id):
 	'''this should use add account template with filled in values'''
 	accData=Account.query.filter_by(id=id).first()
+	#make form and assign default values
+	
+	form=forms.editAccount(title=accData.title.lower(),entVal=accData.entVal,entDate=accData.entDate,
+	entLow=accData.lowVal)
+	
+	form.title.default=accData.title.lower()
+	
+	if form.validate_on_submit():
 
-	if request.method=='POST': 
-		#check to see what was changed
-		if request.form['title']==accData.title: nTitle=""
-		else: nTitle=request.form['title']
-		#entered value
+		accData.title=form.title.data
+		accData.entVal=form.entVal.data
+		accData.entDate=form.entDate.data
+		accData.lowVal=form.entLow.data
 		
-		if request.form['entVal']==accData.entVal: nVal=""
-		else: nVal=request.form['entVal']
-		
-		#repeat compariosn 
-		if request.form['entLow']==accData.lowVal: nLow=""
-		else: nLow=request.form['entLow']
-		
-		#for the date, compile it first, then compare
-		fDate=dateCompile(request.form['entY'], request.form['entM'],request.form['entD'])
-		if fDate==False or fDate==accData.entDate: nDate=""
-		else: nDate=fDate
-		
-		#run the edit, see what comes up false
-		edRes=editAccount(accData.id,nTitle,nVal,nDate,nLow)
-		
-		if edRes[0]==False:
-			flash(edRes[1])
-		else:
-			return redirect(url_for('welcome'))
-	return render_template('budg_editAccount.html',accData=accData)
+		db.session.add(accData)
+		db.session.commit()
 
-####this needs to be fixed
+		flash("Account Edit Success!")
+
+		return redirect(url_for('welcome'))
+	
+	return render_template('budg_editAccount.html',accData=accData, form=form)
+
+
 @app.route('/adAccount',methods=['GET','POST'])
 def adAccount():
 	'''adds an account'''
 	form=forms.addAccountForm()
-	
+
 	#if request.method=='POST': 
 		#the form data has been posted
 	if form.validate_on_submit():
-		addAccount(form.title.data.lower(),form.entVal.data,form.entDate.data,form.entLow.data)
+		create_a_thing(Account,[form.title.data.lower(),form.entVal.data,form.entDate.data,form.entLow.data])
 		return redirect(url_for('welcome'))
 	return render_template('budg_addAccount.html',form=form)
 

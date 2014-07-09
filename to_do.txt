@@ -10,10 +10,19 @@ X-Add expenses
 X-add cashflows
 
 -Display account data
-	-expenses
-	-cashflows
+	X-expenses
+	X-cashflows
 	-transfers
+
+
 -remove expenses
+0-edit account
 -edit expenses
+-edit cashflow estimates
+-edit cashflow actuals
+-add transfers
+-edit transfers
+-remove transers
+-add budget functionality
 
 

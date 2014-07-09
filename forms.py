@@ -2,7 +2,7 @@
 '''this will store our forms'''
 from flask.ext.wtf import Form
 from wtforms import TextField, BooleanField, IntegerField, DateField, FormField, SelectField
-from wtforms.validators import Required, ValidationError
+from wtforms.validators import Required, ValidationError, Optional
 from appHolder import db
 from budg_tables import Account, CashFlow
 import datetime
@@ -12,7 +12,16 @@ def unique_title(table):
 	def _check(form,field):
 		if len(table.query.filter_by(title=field.data.lower()).all())>0:
 			raise ValidationError('Title already exists')
+			
 	return _check
+
+def unique_title_edit(table):
+	#check to verify the title is actually changed
+	def _sameCheck(form,field):
+		if field.data.lower()!=field.default.lower():
+			if len(table.query.filter_by(title=field.data.lower()).all())>0:
+				raise ValidationError('Title already exists')
+	return _sameCheck
 	
 def unique_cf_title(table):
 	#checks a cashflow to the title is unique for the account it affects
@@ -51,7 +60,7 @@ class addAccountForm(Form):
 	title=TextField('title',validators=[Required(),unique_title(Account)])
 	entVal=IntegerField('entVal',validators=[Required()])
 	entDate=DateField('entDate',validators=[Required()])
-	entLow=IntegerField('entLow', validators=[Required()])
+	entLow=IntegerField('entLow', validators=[Optional()])
 
 class addExpenseForm(Form):
 	'''adds an expense form'''
@@ -59,7 +68,6 @@ class addExpenseForm(Form):
 	title=TextField('title',validators=[Required(),titleLengthCheck(min=3,max=15)])
 	eDate=DateField('eDate',validators=[Required()])
 	entVal=IntegerField('entVal',validators=[Required()])
-	
 	
 class addCashFlowForm(Form):
 	account=SelectField('account',coerce=int)
@@ -71,3 +79,8 @@ class addCashFlowForm(Form):
 	rRate=IntegerField('rRate',validators=[Required()])
 	est=BooleanField('est')
 	
+class editAccount(Form):
+	title=TextField('title',validators=[Optional(),unique_title_edit(Account)])
+	entVal=IntegerField('entVal',validators=[Optional()])
+	entDate=DateField('entDate',validators=[Optional()])
+	entLow=IntegerField('entLow', validators=[Optional()])
