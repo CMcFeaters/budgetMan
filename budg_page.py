@@ -27,12 +27,22 @@ def deleteAccount(title):
 @app.route('/deleteCashFlow/<id><accID>')
 def deleteCashFlow(id,accID):
 	#deletes the selected cashflow
-	db.session.delete(CashFlow.query.filter_by(id=nID).first())
+	db.session.delete(CashFlow.query.filter_by(id=id).first())
 	db.session.commit()
 	#print Account.query.filter_by(id=accID).first()
 	
 	
 	return redirect(url_for('displayAccount',acData=Account.query.filter_by(id=accID).all()[0].id))
+	
+@app.route('/deleteExpense/<id><accID>')
+def deleteExpense(id,accID):
+	#deletes the selected cashflow
+	db.session.delete(Expense.query.filter_by(id=id).first())
+	db.session.commit()
+	#print Account.query.filter_by(id=accID).first()
+
+	return redirect(url_for('displayAccount',acData=Account.query.filter_by(id=accID).all()[0].id))
+	
 	
 @app.route('/edAccount/<id>',methods=['GET','POST'])
 def edAccount(id):
@@ -61,6 +71,99 @@ def edAccount(id):
 	
 	return render_template('budg_editAccount.html',accData=accData, form=form)
 
+@app.route('/edCashFlow/<id>',methods=['GET','POST'])
+def edCashFlow(id):
+	'''
+	only called with a url link
+	'''
+	cfData=CashFlow.query.filter_by(id=id).first()
+	#make form and assign default values
+	
+	form=forms.addCashFlowForm(title=cfData.title,entVal=cfData.value,sDate=cfData.date,
+	account=cfData.account_id, rType=cfData.recurType, rRate=cfData.recurRate, 
+	eDate=cfData.recurEnd, est=cfData.estimate)
+	#add the account choices
+	form.account.choices=[(acc.id,acc.title) for acc in Account.query.order_by('title')]
+	
+	if form.validate_on_submit():
+	#	assign values and submit
+		cfData.title=form.title.data
+		cfData.value=form.entVal.data
+		cfData.date=form.sDate.data
+		cfData.account_id=form.account.data
+		cfData.recurType=form.rType.data
+		cfData.recurRate=form.rRate.data
+		cfData.recurEnd=form.eDate.data
+		cfData.estimate=form.est.data
+		
+		db.session.add(cfData)
+		db.session.commit()
+
+		flash("CashFlow %s Edit Success!"%cfData.title)
+
+		return redirect(url_for('welcome'))
+	
+	return render_template('budg_CashFlow.html',cfData=cfData, form=form,edAdd="edit")
+
+	
+
+@app.route('/edExpense/<id>',methods=['GET','POST'])
+def edExpense(id):
+	'''
+	only called with a url link
+	'''
+	expData=Expense.query.filter_by(id=id).first()
+	#make form and assign default values
+	
+	form=forms.addExpenseForm(title=expData.title,entVal=expData.value,eDate=expData.date,account=expData.account_id)
+	form.account.choices=[(acc.id,acc.title) for acc in Account.query.order_by('title')]
+	
+	if form.validate_on_submit():
+
+		expData.title=form.title.data
+		expData.value=form.entVal.data
+		expData.entDate=form.eDate.data
+		expData.account_id=form.account.data
+		
+		db.session.add(expData)
+		db.session.commit()
+
+		flash("Expense %s Edit Success!"%expData.title)
+
+		return redirect(url_for('welcome'))
+	
+	return render_template('budg_Expense.html',expData=expData, form=form,expAdd="edit")
+
+@app.route('/edTransfer/<id>',methods=['GET','POST'])
+def edTransfer(id):
+	'''this should use add account template with filled in values'''
+	'''
+	accData=Account.query.filter_by(id=id).first()
+	#make form and assign default values
+	
+	form=forms.editAccount(title=accData.title.lower(),entVal=accData.entVal,entDate=accData.entDate,
+	entLow=accData.lowVal)
+	
+	form.title.default=accData.title.lower()
+	
+	if form.validate_on_submit():
+
+		accData.title=form.title.data
+		accData.entVal=form.entVal.data
+		accData.entDate=form.entDate.data
+		accData.lowVal=form.entLow.data
+		
+		db.session.add(accData)
+		db.session.commit()
+
+		flash("Account Edit Success!")
+
+		return redirect(url_for('welcome'))
+	
+	return render_template('budg_editAccount.html',accData=accData, form=form)
+	'''
+	return redirect(url_for('welcome'))
+
 
 @app.route('/adAccount',methods=['GET','POST'])
 def adAccount():
@@ -86,7 +189,7 @@ def adExpense():
 	
 	#send in the accounts to populate the dropdown menu
 	
-	return render_template('budg_addExpense.html',form=form)
+	return render_template('budg_Expense.html',form=form,edAdd="add")
 
 	
 @app.route('/adCashFlow',methods=['GET','POST'])
@@ -100,7 +203,7 @@ def adCashFlow():
 			
 		return redirect(url_for('welcome'))
 	
-	return render_template('budg_addCashFlow.html',form=form)
+	return render_template('budg_CashFlow.html',form=form,edAdd="add")
 
 @app.route('/displayAccount/<acData>', methods=['GET','POST'])
 @app.route('/displayAccount', methods=['GET','POST'])

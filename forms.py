@@ -1,6 +1,6 @@
 #forms.py
 '''this will store our forms'''
-from flask.ext.wtf import Form
+from flask_wtf import Form
 from wtforms import TextField, BooleanField, IntegerField, DateField, FormField, SelectField
 from wtforms.validators import Required, ValidationError, Optional
 from appHolder import db
@@ -23,19 +23,6 @@ def unique_title_edit(table):
 				raise ValidationError('Title already exists')
 	return _sameCheck
 	
-def unique_cf_title(table):
-	#checks a cashflow to the title is unique for the account it affects
-	#this is a factory that creates "_check" functions.  when it's called in the class
-	#as unique_cf_title(THETABLE) it returns _check(form,field), with table set to THETABLE
-	#teh reason I couldn't send the account data was I was trying to do it during initiation
-	#instead of dynamically during submission.  That's why changing it to "form.acc..." 
-	#worked
-	def _check(form,field):
-		acc=[item for item in form.account.choices if item[0]==form.account.data][0]
-		if len(table.query.filter_by(account_id=acc[0],title=field.data.lower()).all())>0:
-			raise ValidationError('Title "%s" already exists for account "%s"'%(field.data.lower(),acc[1]))
-	return _check
-
 def before_date_check(form,field):
 	#checks to make sure the endDate is after the start date
 	if form.sDate.data>form.eDate.data:
@@ -53,7 +40,8 @@ def titleLengthCheck(min=0,max=0):
 			raise ValidationError(message)
 	
 	return _lenCheck
-		
+
+	
 	
 class addAccountForm(Form):
 	#a form for adding accounts
@@ -71,14 +59,15 @@ class addExpenseForm(Form):
 	
 class addCashFlowForm(Form):
 	account=SelectField('account',coerce=int)
-	title=TextField('title',validators=[Required(),unique_cf_title(CashFlow)])
+	title=TextField('title',validators=[Required()])
 	entVal=IntegerField('entVal',validators=[Required()])
 	sDate=DateField('sDate',validators=[Required()])
 	eDate=DateField('eDate',validators=[Required(),before_date_check])
 	rType=SelectField('rType',choices=[('Day','Daily'),('Week','Weekly'),('Month','Monthly')],coerce=str)
 	rRate=IntegerField('rRate',validators=[Required()])
 	est=BooleanField('est')
-	
+
+
 class editAccount(Form):
 	title=TextField('title',validators=[Optional(),unique_title_edit(Account)])
 	entVal=IntegerField('entVal',validators=[Optional()])

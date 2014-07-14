@@ -20,7 +20,7 @@ Title:<sml>3-15 characters</sml>{% for error in form.errors.title %}
 Amount: {% for error in form.errors.entVal %}
 <span style='color: red;'>[{{error}}]</span>
 {% endfor%}<br>
-{{form.entVal(size=10,default=form.entVal.default)}}<br>
+{{form.entVal(size=10)}}<br>
 
 
 Date<sml> (YYYY-MM-DD)</sml>: {% for error in form.errors.entDate %}

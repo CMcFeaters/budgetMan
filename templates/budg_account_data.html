@@ -18,7 +18,8 @@
                 + ' </li><li>Every: ' + rRate.toString() + ' ' + rType.toString()
                 + '</li><li>Estimate: ' + est.toString()
                 + ' </li><li>End Date: ' + endDate.toString() + '</li>'
-                + "<sml><a href=\"{{ url_for('deleteCashFlow',id=0,accID=0)}}\">delete</a></sml>".replace('/00','/'+cfID+accID);
+                + "<sml><a href=\"{{ url_for('deleteCashFlow',id=0,accID=0)}}\">delete</a></sml>".replace('/00','/'+cfID+accID)
+				+ " / <sml><a href=\"{{ url_for('edCashFlow',id=0)}}\">edit</a></sml>".replace('/0','/'+cfID);
                 //+ ;
         }
         else {
@@ -33,9 +34,9 @@
         if (list.innerHTML == "") {
             
             list.innerHTML = '<li>Value: ' + value + '</li>'
-                + ' </li><li>Date: ' + eDate.toString() + '</li>';
-               // + "<sml><a href=\"{{ url_for('deleteCashFlow',id=0,accID=0)}}\">delete</a></sml>".replace('/00','/'+cfID+accID);
-                //+ ;
+                + ' </li><li>Date: ' + eDate.toString() + '</li>'               
+			    + "<sml><a href=\"{{ url_for('deleteExpense',id=0,accID=0)}}\">delete</a></sml>".replace('/00','/'+expID+accID)
+			    + " / <sml><a href=\"{{ url_for('edExpense',id=0)}}\">edit</a></sml>".replace('/0','/'+expID);
         }
         else {
             list.innerHTML="";
