@@ -101,7 +101,8 @@ class Account(db.Model):
 			expValue+=expense.value
 		return expValue
 	
-	def getTransfers(self,endDate=datetime.datetime.today(),startDate=False):
+	def getTransfers(self,endDate=datetime.datetime.today(),startDate=False, inOut="both"):
+		
 		'''
 		this finds all of the transfers related to this acocunt
 		returns ([transfers_in],[transfers_out]) in the form of (transfer in,transfer out)
@@ -123,9 +124,13 @@ class Account(db.Model):
 			if thing.date.date()<startDate.date() or thing.date.date()>endDate.date() :
 				tf_out.remove(thing)
 				
-		return (tf_in,tf_out)
+		if inOut=="in":
+			return tf_in
+		elif inOut=="out":
+			return tf_out
+		else: return (tf_in,tf_out)
 	
-	def getTransferValues(self,endDate=datetime.datetime.today(),startDate=False):
+	def getTransferValues(self,endDate=datetime.datetime.today(),startDate=False, inOut="none"):
 		'''
 		a function which returns the values of all transfers in teh form of (in,-out)
 		'''
@@ -138,7 +143,11 @@ class Account(db.Model):
 		for tf_out in tfs_out:
 			outgoing-=tf_out.value
 			
-		return (incoming,outgoing)
+		if inOut=="in":
+			return incoming
+		elif inOut=="out":
+			return outgoing
+		else: return (incoming,outgoing)
 		
 	def getDateValue(self,endDate=datetime.datetime.today()):
 		'''returns a value containing the $ value of an account including all expenses up to endDate from entDate'''

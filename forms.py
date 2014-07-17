@@ -41,15 +41,21 @@ def titleLengthCheck(min=0,max=0):
 	
 	return _lenCheck
 
-	
+class transferForm(Form):
+	#a form for adding accounts
+	title=TextField('title',validators=[Required(),unique_title(Account)])
+	value=IntegerField('value',validators=[Required()])
+	date=DateField('date',validators=[Required()])
+	entLow=IntegerField('entLow', validators=[Optional()])	
 	
 class addAccountForm(Form):
 	#a form for adding accounts
 	title=TextField('title',validators=[Required(),unique_title(Account)])
 	entVal=IntegerField('entVal',validators=[Required()])
 	entDate=DateField('entDate',validators=[Required()])
-	entLow=IntegerField('entLow', validators=[Optional()])
-
+	f_account=SelectField('f_account',coerce=int)
+	t_account=SelectField('t_account',coerce=int)
+	
 class addExpenseForm(Form):
 	'''adds an expense form'''
 	account=SelectField('account',coerce=int)
@@ -68,8 +74,3 @@ class addCashFlowForm(Form):
 	est=BooleanField('est')
 
 
-class editAccount(Form):
-	title=TextField('title',validators=[Optional(),unique_title_edit(Account)])
-	entVal=IntegerField('entVal',validators=[Optional()])
-	entDate=DateField('entDate',validators=[Optional()])
-	entLow=IntegerField('entLow', validators=[Optional()])
