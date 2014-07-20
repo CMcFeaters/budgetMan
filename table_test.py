@@ -70,7 +70,7 @@ class test3_transferTests(unittest.TestCase):
 		print tf.date.date()
 		self.assertTrue(True)
 		
-	def test003_reverseTrackTransfer(self0:
+	def test003_reverseTrackTransfer(self):
 		'''a test to find the transfers associated with an account'''
 		pass
 
@@ -90,38 +90,19 @@ class test4_cashFlowTests(unittest.TestCase):
 		#acc=db.session.query(Account).all()[0]
 		cfs=db.session.query(CashFlow).all()
 		for cf in cfs:
-			print '--------------------'
+			print '---------*----------'
 			print cf
 		self.assertTrue(True)
 		
-	def test003_estimateTest(self):
-		'''
-		this will test the ability of the cashflow to create an associated estimate
-		'''
-		today=datetime.datetime.today()
-		oneYear=today+datetime.timedelta(365)
-		
-		acc=db.session.query(Account).all()[0]
-		create_a_thing(CashFlow,[acc.id,"Groceries",-100,datetime.datetime.today(),"Week",1,oneYear,True])
-		cf=db.session.query(CashFlow).filter_by(title="Groceries").all()[0]
-		ind_cf=cf.createSeries()[0]
-		
-		create_a_thing(Actual,[cf.id,cf.title+"_"+str(ind_cf.date.date()),-90,ind_cf.date,today])
-		actual=db.session.query(Actual).all()[0]
-		#the new series value which we replaced should reflect the estamate value
-		
-		if cf.createSeries()[0].value==actual.value and cf.createSeries()[0].date==actual.date:
-			print "**CASHFLOW[0]**"
-			print cf.createSeries()[0]
-			print "**ACTUAL**"
-			print actual
-			self.assertTrue(True)
-		else:
-			print "**CASHFLOW[0]**"
-			print cf.createSeries()[0]
-			print "**ACTUAL**"
-			print actual
-			self.assertTrue(False)
+	def test003_createExpense(self):
+		cf=db.session.query(CashFlow).all()[0]
+		cf.createExpenses()
+		print "**==**=**"
+		print cf
+		for thing in db.session.query(Expense).filter_by(cf_id=cf.id).all():
+			print "***********"
+			print thing
+		self.assertTrue(True)
 			
 
 		
@@ -168,23 +149,23 @@ class test5_checkSum(unittest.TestCase):
 		the account datevalue function
 		'''
 		exps=db.session.query(Expense).all()
-		cfs=db.session.query(CashFlow).all()
+		#cfs=db.session.query(CashFlow).all()
 		tfs=db.session.query(Transfer).all()
 		accs=db.session.query(Account).all()
 		oneYear=datetime.datetime.today()+datetime.timedelta(365)
 		for acc in accs:
 			transTotal=acc.getTransferValues(oneYear)[0]+acc.getTransferValues(oneYear)[1]
-			cfTotal=acc.getPaymentValues(oneYear)
+			#cfTotal=acc.getPaymentValues(oneYear)
 			expsTotal=acc.getExpenseValues(oneYear)
 			
-			if acc.getDateValue(oneYear)!=acc.entVal+expsTotal+transTotal+cfTotal: self.assertTrue(False)
+			if acc.getDateValue(oneYear)!=acc.entVal+expsTotal+transTotal: self.assertTrue(False)
 			else: 
 				print "*****************"
 				print "Account: %s"%acc.title
 				print "Value: %s"%acc.getDateValue(oneYear)
 				print "Start Amount: %s"%acc.entVal
 				print "Total transfered: %s"%transTotal
-				print "Total CashFlow: %s"%cfTotal
+				#print "Total CashFlow: %s"%cfTotal
 				print "Total Expense: %s"%expsTotal
 		
 		self.assertTrue(True)

@@ -194,10 +194,10 @@ class CashFlow(db.Model):
 	recurRate=db.Column(db.Integer)
 	recurEnd=db.Column(db.DateTime)
 	estimate=db.Column(db.Boolean)	#is the cashflow an estimate or known value
-	actuals=db.relationship("Actual",backref=db.backref("cashflows",lazy="joined"),lazy="dynamic")	#link to actuals table
+	expenses=db.relationship("Expense",backref=db.backref("cashflows",lazy="joined"),lazy="dynamic")	#link to expenses table
 		
-	def __init__(self,account_id,title,value,date=datetime.datetime.today(),recurType="False",recurRate=0, 
-	recurEnd=datetime.datetime.today(),estimate=False):
+	def __init__(self,account_id,title,value,date=datetime.datetime.today(),recurType="Day",recurRate=1, 
+	recurEnd=datetime.datetime.today()):
 		'''cash flow values'''
 		self.account_id=account_id	#the account the cashflow affects
 		self.title=title
@@ -206,9 +206,33 @@ class CashFlow(db.Model):
 		self.recurType=recurType	#can be false (non-recurring), Day, Month, Week
 		self.recurRate=recurRate	#number or recurtypes between recurrence
 		self.recurEnd=recurEnd		#date recurrence ends
-		self.estimate=estimate		#used to determine if the cashflow is an estimate or a known value
 
-	def createSeries(self):
+	def createExpenses(self):
+		#generates the expense tables
+		if self.expenses==[]:
+			#create all new expenses
+			'''
+			***********this isnt working.  it's making an transfer accoutn appear
+			'''
+			if self.recurType=="Day" and self.recurRate>0:
+				series=[create_a_thing(Expense,[self.account_id,self.title,self.value,pDate])
+				for pDate in cfRange if ((pDate-self.date).days)%self.recurRate==0]
+			elif self.recurType=="Week":
+				series=[create_a_thing(Expense,[self.account_id,self.title,self.value,pDate])
+				for pDate in cfRange if ((pDate-self.date).days)%(self.recurRate*7)==0]
+			elif self.recurType=="Month":
+				series=[create_a_thing(Expense,[self.account_id,self.title,self.value,pDate])
+				for pDate in cfRange if ((pDate.month-self.date.month))%(self.recurRate)==0 and pDate.day==self.date.day]
+			
+			for exp in series:
+				#assign the cf_id for each newly created expense
+				exp.cf_id=self.id 
+		else:
+			#update expenses
+			#delete then recreate?
+			pass
+	
+	'''def createSeries(self):
 		#converts a recurring payment into a series of paymnets
 		#create entire array of cashflows
 		#return an array of applicable entries
@@ -241,6 +265,8 @@ class CashFlow(db.Model):
 				
 			
 		return series
+		'''
+		
 	def __repr__(self):
 		return "Title: %s \nValue: %s \nRate: %s %s"%(self.title,self.value, self.recurRate,self.recurType)
 
@@ -249,9 +275,10 @@ class CashFlow(db.Model):
 		return iter([attr[0] for attr in inspect.getmembers(self,not inspect.ismethod) if type(attr[1])!=types.MethodType and not attr[0].startswith("_")])
 
 class Actual(db.Model):
+	#may be able to remove this completely
 	'''
 		actual class
-			this class will be the actual values aassocited with estimated cashflows
+			this class will be the actual values aassocited with expenses generated in a cashflow
 			cf_id will be th elink to the cashflow
 			title will be the cf title+"_{date}"
 			value will be the actual value
@@ -261,21 +288,21 @@ class Actual(db.Model):
 	__tablename__="actuals"
 	
 	id=db.Column(db.Integer,primary_key=True)
-	cf_id=db.Column(db.Integer,db.ForeignKey('cashflows.id'))
+	#exp_id=db.Column(db.Integer,db.ForeignKey('expenses.id'))	#the expense it's replacing
 	title=db.Column(db.String)
 	value=db.Column(db.Integer)
 	date=db.Column(db.DateTime)
-	cf_date=db.Column(db.DateTime)
+	exp_date=db.Column(db.DateTime)
 	
-	def __init__(self,cf_id,title,value,cf_date,date=datetime.datetime.today()):
+	def __init__(self,cf_id,title,value,exp_date,date=datetime.datetime.today()):
 		self.cf_id=cf_id
 		self.title=title
 		self.value=value
-		self.cf_date=cf_date
+		self.exp_date=exp_date
 		self.date=date
 	
 	def __repr__(self):
-		return "Title: %s \nValue: %s \nDate: %s\nCf_Date: %s"%(self.title,self.value, self.date, self.cf_date)
+		return "Title: %s \nValue: %s \nDate: %s\nCf_Date: %s"%(self.title,self.value, self.date, self.exp_date)
 	
 class Expense(db.Model):
 	'''Single expense class
@@ -289,9 +316,11 @@ class Expense(db.Model):
 	
 	id=db.Column(db.Integer,primary_key=True)
 	account_id=db.Column(db.Integer,db.ForeignKey('accounts.id'))
+	cf_id=db.Column(db.Integer,db.ForeignKey('cashflows.id'))	#link to a cashflow if appropriate
 	title=db.Column(db.String)
 	value=db.Column(db.Integer)
 	date=db.Column(db.DateTime)
+	#actuals=db.relationship("Actual",backref=db.backref("expenses",lazy="joined"),lazy="dynamic")	#link to actuals table
 	
 	def __init__(self,account_id,title,value,date=datetime.datetime.today()):
 		self.account_id=account_id
