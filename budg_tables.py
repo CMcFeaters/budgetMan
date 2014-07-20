@@ -101,7 +101,7 @@ class Account(db.Model):
 			expValue+=expense.value
 		return expValue
 	
-	def getTransfers(self,endDate=datetime.datetime.today(),startDate=False, inOut="both"):
+	def getTransfers(self,endDate=datetime.datetime.today(),startDate=False):
 		
 		'''
 		this finds all of the transfers related to this acocunt
@@ -122,13 +122,9 @@ class Account(db.Model):
 		#this is a workaround for filtering out the dates associated with the transfers
 		for thing in tf_in:
 			if thing.date.date()<startDate.date() or thing.date.date()>endDate.date() :
-				tf_out.remove(thing)
+				tf_in.remove(thing)
 				
-		if inOut=="in":
-			return tf_in
-		elif inOut=="out":
-			return tf_out
-		else: return (tf_in,tf_out)
+		return (tf_in,tf_out)
 	
 	def getTransferValues(self,endDate=datetime.datetime.today(),startDate=False, inOut="none"):
 		'''

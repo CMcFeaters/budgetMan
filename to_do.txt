@@ -8,25 +8,26 @@ XUpdate accounts to take into account transfers cashflows and expenses
 User interface
 X-Add expenses
 X-add cashflows
-need to add page - add transfers
+X - add transfers
 -add cashflow estimate v actual
+	WORKING ON the javascripT ability to add/edit actual values
+	NEED A FORM
 
 
 X-CHANGE ACCOUNT and EDIT Account to a single html page/form
 -Display account data
 	X-expenses
 	X-cashflows
-	Working onthis-transfers
+	X-transfers
 
-
--remove expenses
+X-remove expenses
 X-edit account
 X-edit expenses
 X-edit cashflow estimates
 -edit cashflow actuals
--add transfers
--edit transfers
--remove transers
+X-add transfers
+X-edit transfers
+X-remove transers
 -add budget functionality
 
 

@@ -41,20 +41,27 @@ def titleLengthCheck(min=0,max=0):
 	
 	return _lenCheck
 
+def notDuplicate(form, field):
+	'''
+	verifies that a transfer can't be to and from the same account
+	'''
+	if form.t_account.data==form.f_account.data:
+		raise (ValidationError('FROM and TO accounts cannot be the same'))
+
 class transferForm(Form):
 	#a form for adding accounts
-	title=TextField('title',validators=[Required(),unique_title(Account)])
+	title=TextField('title',validators=[Required()])
 	value=IntegerField('value',validators=[Required()])
 	date=DateField('date',validators=[Required()])
-	entLow=IntegerField('entLow', validators=[Optional()])	
+	f_account=SelectField('account',coerce=int)
+	t_account=SelectField('account',coerce=int, validators=[notDuplicate])
 	
 class addAccountForm(Form):
 	#a form for adding accounts
 	title=TextField('title',validators=[Required(),unique_title(Account)])
 	entVal=IntegerField('entVal',validators=[Required()])
 	entDate=DateField('entDate',validators=[Required()])
-	f_account=SelectField('f_account',coerce=int)
-	t_account=SelectField('t_account',coerce=int)
+	entLow=IntegerField('entLow',validators=[Optional()])
 	
 class addExpenseForm(Form):
 	'''adds an expense form'''

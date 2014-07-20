@@ -19,6 +19,7 @@
                 + '</li><li>Estimate: ' + est.toString()
                 + ' </li><li>End Date: ' + endDate.toString() + '</li>'
                 + "<sml><a href=\"{{ url_for('deleteCashFlow',id=0,accID=0)}}\">delete</a></sml>".replace('/00','/'+cfID+accID)
+				+ " / <sml><a href=\"{{ url_for('cfBreakdown',id=0,accID=0)}}\">breakdown</a></sml>".replace('/00','/'+cfID+accID)
 				+ " / <sml><a href=\"{{ url_for('edCashFlow',id=0)}}\">edit</a></sml>".replace('/0','/'+cfID);
                 //+ ;
         }
@@ -43,16 +44,20 @@
         }
 }
 
-    function show_tfData(tfID, other_account, value, date) {
+    function show_tfData(tfID, other_account, value, date, fromTo, accID) {
         var list = document.getElementById("tf_"+tfID);
-        //alert(list.innerHTML);
+        //display positive or negative values depending on data
+		if (fromTo=="To: "){
+		
+			value=-value;
+			}
         if (list.innerHTML == "") {
             
             list.innerHTML = '<li>Value: ' + value + '</li>'
-                + ' </li><li>From: '+other_account + '</li>'
-				+ ' </li><li>Date: ' + date.toString() + '</li>';
-			    //+ "<sml><a href=\"{{ url_for('deleteTransfer',id=0,accID=0)}}\">delete</a></sml>".replace('/00','/'+tfID+accID)
-			    //+ " / <sml><a href=\"{{ url_for('edTransfer',id=0)}}\">edit</a></sml>".replace('/0','/'+tfID);
+                + ' </li><li>'+fromTo+other_account + '</li>'
+				+ ' </li><li>Date: ' + date.toString() + '</li>'
+			    + "<sml><a href=\"{{ url_for('deleteTransfer',id=0,accID=0)}}\">delete</a></sml>".replace('/00','/'+tfID+accID)
+			    + " / <sml><a href=\"{{ url_for('edTransfer',id=0)}}\">edit</a></sml>".replace('/0','/'+tfID);
         }
         else {
             list.innerHTML="";
@@ -113,13 +118,24 @@
 <!--Display Transfer Data-->
  Transfers in:<br>
     {% for tf in tf_in %}
-		><a href="javascript:show_tfData('{{tf.id}}','{{tf.f_account.title}}','{{tf.value}}','{{tf.date}}');">{{tf.title}}</a><br>
+		><a href="javascript:show_tfData('{{tf.id}}','{{tf.f_account.title}}','{{tf.value}}','{{tf.date}}','From: ', '{{acData.id}}');">{{tf.title}}</a><br>
 		<ul id="tf_{{tf.id}}"></ul>
 
     {% else %}
         <em>Nothing to report chief</em></li><br>
 
     {% endfor %}
+
+ Transfers out:<br>
+    {% for tf in tf_out %}
+		><a href="javascript:show_tfData('{{tf.id}}','{{tf.t_account.title}}','{{tf.value}}','{{tf.date}}','To: ', '{{acData.id}}');">{{tf.title}}</a><br>
+		<ul id="tf_{{tf.id}}"></ul>
+
+    {% else %}
+        <em>Nothing to report chief</em></li><br>
+
+    {% endfor %}	
+
 </fieldset>
 
 {% endblock %} 
