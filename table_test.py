@@ -1,7 +1,7 @@
 from appHolder import db
 import unittest, datetime, sys, os
 from random import randint
-from budg_tables import create_a_thing,Account, CashFlow, Expense, Transfer, Actual
+from budg_tables import create_a_thing,Account, CashFlow, Expense, Transfer
 
 '''this file runs some tests on the budget tables created
 '''
@@ -24,10 +24,10 @@ class test1_accountTests(unittest.TestCase):
 		'''test to display available accounts and their expense data
 		'''
 		accs=db.session.query(Account)
-		for acc in accs:
+		'''for acc in accs:
 			print '--------------------'
 			print acc
-			
+		'''	
 		
 		self.assertTrue(True)
 			
@@ -43,9 +43,9 @@ class test2_expenseTests(unittest.TestCase):
 	def test002_displayExpenses(self):
 		#acc=db.session.query(Account).all()[0]
 		exps=db.session.query(Expense).all()
-		for exp in exps:
-			print '--------------------'
-			print exp
+		#for exp in exps:
+		#	print '--------------------'
+		#	print exp
 		self.assertTrue(True)
 
 class test3_transferTests(unittest.TestCase):
@@ -61,18 +61,7 @@ class test3_transferTests(unittest.TestCase):
 		create_a_thing(Transfer,['TestTransfer'+str(randint(0,100)),50,acc1.id,acc2.id,datetime.datetime.today()])
 
 		self.assertTrue(True)
-		
-	def test002_displayTransfer(self):
-		#acc=db.session.query(Account).all()[0]
-		tf=db.session.query(Transfer).all()[0]
-		print '--------------------'
-		print tf
-		print tf.date.date()
-		self.assertTrue(True)
-		
-	def test003_reverseTrackTransfer(self):
-		'''a test to find the transfers associated with an account'''
-		pass
+
 
 class test4_cashFlowTests(unittest.TestCase):
 	'''
@@ -92,16 +81,12 @@ class test4_cashFlowTests(unittest.TestCase):
 		for cf in cfs:
 			print '---------*----------'
 			print cf
+			print  '---------*----------'
 		self.assertTrue(True)
 		
 	def test003_createExpense(self):
 		cf=db.session.query(CashFlow).all()[0]
 		cf.createExpenses()
-		print "**==**=**"
-		print cf
-		for thing in db.session.query(Expense).filter_by(cf_id=cf.id).all():
-			print "***********"
-			print thing
 		self.assertTrue(True)
 			
 
@@ -110,7 +95,7 @@ class test4_cashFlowTests(unittest.TestCase):
 class test5_checkSum(unittest.TestCase):
 	'''tests run on the account to verify random things are working
 	'''
-	tomorrow=datetime.datetime.today()+datetime.timedelta(1)	#a date for summing purposes
+	tomorrow=datetime.datetime.today()+datetime.timedelta(365)	#a date for summing purposes
 	
 	def test001_checkExpenses(self):
 		'''this function will validate the expense values are totaled in the getExpense function
@@ -136,11 +121,11 @@ class test5_checkSum(unittest.TestCase):
 		tfs=db.session.query(Transfer).all()
 		accs=db.session.query(Account).all()
 		#db.session.query(Transfer).filter_by(f_account_id=accs[0].id).all() 
-		for thing in accs:
+		'''for thing in accs:
 			print "*************"
 			print "Account: %s"%thing.id
 			print thing.getTransfers()
-			print thing.getTransferValues()
+			print thing.getTransferValues()'''
 		self.assertTrue(True)
 
 	def test003_checkAll(self):
@@ -149,23 +134,23 @@ class test5_checkSum(unittest.TestCase):
 		the account datevalue function
 		'''
 		exps=db.session.query(Expense).all()
-		#cfs=db.session.query(CashFlow).all()
 		tfs=db.session.query(Transfer).all()
 		accs=db.session.query(Account).all()
 		oneYear=datetime.datetime.today()+datetime.timedelta(365)
 		for acc in accs:
 			transTotal=acc.getTransferValues(oneYear)[0]+acc.getTransferValues(oneYear)[1]
-			#cfTotal=acc.getPaymentValues(oneYear)
+
 			expsTotal=acc.getExpenseValues(oneYear)
 			
-			if acc.getDateValue(oneYear)!=acc.entVal+expsTotal+transTotal: self.assertTrue(False)
+			if acc.getDateValue(oneYear)!=acc.entVal+expsTotal+transTotal:
+				print acc.title
+				self.assertTrue(False)
 			else: 
-				print "*****************"
+				print "****12345******"
 				print "Account: %s"%acc.title
 				print "Value: %s"%acc.getDateValue(oneYear)
 				print "Start Amount: %s"%acc.entVal
 				print "Total transfered: %s"%transTotal
-				#print "Total CashFlow: %s"%cfTotal
 				print "Total Expense: %s"%expsTotal
 		
 		self.assertTrue(True)

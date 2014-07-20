@@ -68,22 +68,6 @@ class Account(db.Model):
 		self.entDate=entDate
 		self.lowVal=lowVal
 	
-	def getPayments(self,endDate=datetime.datetime.today(),startDate=False):
-		'''returns a list continaing all of the payments that will occur over a given period for cashflows associated 
-		with this account and daterange
-		'''
-		if not startDate: startDate=self.entDate	#if a start date is not given, assume it's the account entered date
-		return [payment for cf in self.cashFlows for payment in cf.createSeries() if payment.date.date()<=endDate.date() and payment.date.date()>=startDate.date()]
-	
-	def getPaymentValues(self,endDate=datetime.datetime.today(),startDate=False):
-		'''given an accounts, start date and an end date, returns the total expenditure
-		s for the account between the two dates'''
-		if not startDate: startDate=self.entDate
-		paymentValue=0
-		for payment in self.getPayments(endDate,startDate):
-			if payment.date<=endDate and payment.date>=startDate: paymentValue+=payment.value
-		return paymentValue
-	
 	def getExpenses(self,endDate=datetime.datetime.today(),startDate=entDate):
 		'''
 		returns a list of expenses associated with this account
@@ -147,21 +131,8 @@ class Account(db.Model):
 		
 	def getDateValue(self,endDate=datetime.datetime.today()):
 		'''returns a value containing the $ value of an account including all expenses up to endDate from entDate'''
-		return self.entVal+self.getPaymentValues(endDate)+self.getExpenseValues(endDate)+self.getTransferValues()[0]+self.getTransferValues()[1]
+		return self.entVal+self.getExpenseValues(endDate)+self.getTransferValues()[0]+self.getTransferValues()[1]
 	
-	def getRate(self,type,startDate,endDate):
-		'''determines your <type> cashflow rate between <startDate> and <endDate>'''
-		if type=="Day":		#daily expenses
-			return (self.getPaymentValues(endDate,startDate)/(endDate-startDate).days)
-		elif type=="Week":	#weekly expenses
-			return (self.getPaymentValues(endDate,startDate)/(endDate-startDate).days)*7
-		else:	#monthly expense
-			return self.getPaymentValues(endDate,startDate)/((endDate.year-startDate.year)*12+endDate.month-startDate.month)
-
-	def getEstimates(self,endDate,startDate=False):
-		#'''if startdate is false, account entered date is assumed'''
-		'''returns a list of all estimated cashflows between <startDate> and <endDate>'''
-		return [expense for expense in self.getPayments(endDate,startDate) if expense.estimate]
 		
 	def __repr__(self):
 		return "Title: %s \nValue: %s \nDate: %s\n Current Value: %s"%(self.title,self.entVal,self.entDate, self.getDateValue())
@@ -209,63 +180,19 @@ class CashFlow(db.Model):
 
 	def createExpenses(self):
 		#generates the expense tables
-		if self.expenses==[]:
-			#create all new expenses
-			'''
-			***********this isnt working.  it's making an transfer accoutn appear
-			'''
-			if self.recurType=="Day" and self.recurRate>0:
-				series=[create_a_thing(Expense,[self.account_id,self.title,self.value,pDate])
-				for pDate in cfRange if ((pDate-self.date).days)%self.recurRate==0]
-			elif self.recurType=="Week":
-				series=[create_a_thing(Expense,[self.account_id,self.title,self.value,pDate])
-				for pDate in cfRange if ((pDate-self.date).days)%(self.recurRate*7)==0]
-			elif self.recurType=="Month":
-				series=[create_a_thing(Expense,[self.account_id,self.title,self.value,pDate])
-				for pDate in cfRange if ((pDate.month-self.date.month))%(self.recurRate)==0 and pDate.day==self.date.day]
-			
-			for exp in series:
-				#assign the cf_id for each newly created expense
-				exp.cf_id=self.id 
-		else:
-			#update expenses
-			#delete then recreate?
-			pass
-	
-	'''def createSeries(self):
-		#converts a recurring payment into a series of paymnets
-		#create entire array of cashflows
-		#return an array of applicable entries
-		
-		#initial entry
-		cfRange=dateRange(self.date,self.recurEnd)	#the date range for the cashflow
-
-		#generate remaining recurring entries in a similar fasion
-		#>>>insert estima6+te links here
+		#creates all new expenses which are linked to the cashflow
+		cfRange=dateRange(self.date,self.recurEnd)
 		if self.recurType=="Day" and self.recurRate>0:
-			series=[CashFlow(self.account_id,self.title,self.value,pDate,False,estimate=self.estimate)
+			print 'HERE'
+			print self.id
+			series=[create_a_thing(Expense,[self.account_id,self.title,self.value,pDate,self.id])
 			for pDate in cfRange if ((pDate-self.date).days)%self.recurRate==0]
 		elif self.recurType=="Week":
-			series=[CashFlow(self.account_id,self.title,self.value,pDate,False,estimate=self.estimate)
+			series=[create_a_thing(Expense,[self.account_id,self.title,self.value,pDate,self.id])
 			for pDate in cfRange if ((pDate-self.date).days)%(self.recurRate*7)==0]
 		elif self.recurType=="Month":
-			series=[CashFlow(self.account_id,self.title,self.value,pDate,False,estimate=self.estimate)
+			series=[create_a_thing(Expense,[self.account_id,self.title,self.value,pDate,self.id])
 			for pDate in cfRange if ((pDate.month-self.date.month))%(self.recurRate)==0 and pDate.day==self.date.day]
-		else:
-			series=[CashFlow(self.account_id,self.title,self.value,self.date,False,estimate=self.estimate)]
-			
-		if self.estimate:
-			for cf in series:
-				#replace all of the estimated values with actual values
-				for actual in self.actuals:
-					#compare the dates, replace if necessary
-					if actual.cf_date==cf.date:
-						series[series.index(cf)].date=actual.date
-						series[series.index(cf)].value=actual.value
-				
-			
-		return series
-		'''
 		
 	def __repr__(self):
 		return "Title: %s \nValue: %s \nRate: %s %s"%(self.title,self.value, self.recurRate,self.recurType)
@@ -273,36 +200,6 @@ class CashFlow(db.Model):
 	def __iter__(self):
 		#iterate the members of cashflow
 		return iter([attr[0] for attr in inspect.getmembers(self,not inspect.ismethod) if type(attr[1])!=types.MethodType and not attr[0].startswith("_")])
-
-class Actual(db.Model):
-	#may be able to remove this completely
-	'''
-		actual class
-			this class will be the actual values aassocited with expenses generated in a cashflow
-			cf_id will be th elink to the cashflow
-			title will be the cf title+"_{date}"
-			value will be the actual value
-			date will be the date of the cashflow
-			cf_date will be the date of the cashflow it replaces/supercedes
-	'''
-	__tablename__="actuals"
-	
-	id=db.Column(db.Integer,primary_key=True)
-	#exp_id=db.Column(db.Integer,db.ForeignKey('expenses.id'))	#the expense it's replacing
-	title=db.Column(db.String)
-	value=db.Column(db.Integer)
-	date=db.Column(db.DateTime)
-	exp_date=db.Column(db.DateTime)
-	
-	def __init__(self,cf_id,title,value,exp_date,date=datetime.datetime.today()):
-		self.cf_id=cf_id
-		self.title=title
-		self.value=value
-		self.exp_date=exp_date
-		self.date=date
-	
-	def __repr__(self):
-		return "Title: %s \nValue: %s \nDate: %s\nCf_Date: %s"%(self.title,self.value, self.date, self.exp_date)
 	
 class Expense(db.Model):
 	'''Single expense class
@@ -322,12 +219,13 @@ class Expense(db.Model):
 	date=db.Column(db.DateTime)
 	#actuals=db.relationship("Actual",backref=db.backref("expenses",lazy="joined"),lazy="dynamic")	#link to actuals table
 	
-	def __init__(self,account_id,title,value,date=datetime.datetime.today()):
+	def __init__(self,account_id,title,value,date=datetime.datetime.today(),cf_id=False):
 		self.account_id=account_id
 		self.title=title
 		self.value=value
 		self.date=date
-
+		if cf_id:
+			self.cf_id=cf_id
 		
 	def __repr__(self):
 		return "Title: %s \nValue: %s \nDate: %s"%(self.title,self.value,self.date)

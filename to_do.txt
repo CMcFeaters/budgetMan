@@ -30,4 +30,4 @@ X-edit transfers
 X-remove transers
 -add budget functionality
 
-
+fixed cashflows to generate expenses, need to incorporate into webpage
