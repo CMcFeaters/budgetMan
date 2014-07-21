@@ -31,3 +31,6 @@ X-remove transers
 -add budget functionality
 
 fixed cashflows to generate expenses, need to incorporate into webpage
+need to fix adding
+display data
+deleteing

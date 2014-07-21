@@ -24,7 +24,9 @@ def create_a_thing(table,args):
 	thing=table(*args)
 	db.session.add(thing)
 	db.session.commit()
-
+	if table==CashFlow:
+		thing.createExpenses()
+		
 class dateRange():
 	'''an array of all days between two dates'''
 	def __init__(self,startDate=datetime.datetime.today(),endDate=datetime.date(datetime.datetime.today().year+1,datetime.datetime.today().month,datetime.datetime.today().day)):
@@ -180,11 +182,16 @@ class CashFlow(db.Model):
 
 	def createExpenses(self):
 		#generates the expense tables
+		
+		#delete the existing items
+		[db.session.delete(thing) for thing in Expense.query.filter_by(cf_id=self.id).all()]
+		db.session.commit()
+		
 		#creates all new expenses which are linked to the cashflow
 		cfRange=dateRange(self.date,self.recurEnd)
+		
+		#fill in the expenses
 		if self.recurType=="Day" and self.recurRate>0:
-			print 'HERE'
-			print self.id
 			series=[create_a_thing(Expense,[self.account_id,self.title,self.value,pDate,self.id])
 			for pDate in cfRange if ((pDate-self.date).days)%self.recurRate==0]
 		elif self.recurType=="Week":

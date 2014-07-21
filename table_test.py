@@ -86,7 +86,8 @@ class test4_cashFlowTests(unittest.TestCase):
 		
 	def test003_createExpense(self):
 		cf=db.session.query(CashFlow).all()[0]
-		cf.createExpenses()
+		for thing in Expense.query.filter_by(cf_id=cf.id).all():
+			print thing
 		self.assertTrue(True)
 			
 

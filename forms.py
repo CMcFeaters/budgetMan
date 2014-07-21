@@ -78,6 +78,5 @@ class addCashFlowForm(Form):
 	eDate=DateField('eDate',validators=[Required(),before_date_check])
 	rType=SelectField('rType',choices=[('Day','Daily'),('Week','Weekly'),('Month','Monthly')],coerce=str)
 	rRate=IntegerField('rRate',validators=[Required()])
-	est=BooleanField('est')
 
 

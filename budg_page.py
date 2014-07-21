@@ -182,8 +182,7 @@ def adCashFlow():
 	form.account.choices=[(acc.id,acc.title) for acc in Account.query.order_by('title')]
 	if form.validate_on_submit(): 
 		create_a_thing(CashFlow,[form.account.data,form.title.data,form.entVal.data,form.sDate.data,\
-			form.rType.data,form.rRate.data,form.eDate.data,form.est.data])
-			
+			form.rType.data,form.rRate.data,form.eDate.data])
 		return redirect(url_for('welcome'))
 	
 	return render_template('budg_CashFlow.html',form=form,edAdd="add")
@@ -193,8 +192,6 @@ def deleteCashFlow(id,accID):
 	#deletes the selected cashflow
 	db.session.delete(CashFlow.query.filter_by(id=id).first())
 	db.session.commit()
-	#print Account.query.filter_by(id=accID).first()
-	
 	
 	return redirect(url_for('displayAccount',acData=Account.query.filter_by(id=accID).all()[0].id))
 	
@@ -221,11 +218,13 @@ def edCashFlow(id):
 		cfData.recurType=form.rType.data
 		cfData.recurRate=form.rRate.data
 		cfData.recurEnd=form.eDate.data
-		cfData.estimate=form.est.data
 		
 		db.session.add(cfData)
 		db.session.commit()
-
+		
+		#create the new expenses
+		cfData.createExpenses()
+				
 		flash("CashFlow %s Edit Success!"%cfData.title)
 
 		return redirect(url_for('welcome'))
@@ -271,7 +270,9 @@ def displayAccount(acData):
 		acData=ddList[0]
 	else:
 		acData=Account.query.filter_by(id=acData).first()
-	
+	#need to fix this section
+	#need to make cashflow include the expenses
+	#need to make the expenses not include the ones marked for a cashflow
 	if request.method=='POST':
 		#something was posted
 		acData=Account.query.filter_by(id=request.form['account']).first()		
