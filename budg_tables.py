@@ -59,8 +59,8 @@ class Account(db.Model):
 	entVal=db.Column(db.Integer)
 	entDate=db.Column(db.DateTime)
 	lowVal=db.Column(db.Integer)
-	cashFlows=db.relationship("CashFlow",backref=db.backref("accounts",lazy="joined"),lazy="dynamic")	#link to cashflow table
-	expenses=db.relationship("Expense",backref=db.backref("accounts",lazy="joined"),lazy="dynamic")	#link to Expense table
+	cashFlows=db.relationship("CashFlow",backref=db.backref("accounts",lazy="joined"), cascade='all, delete',lazy="dynamic")	#link to cashflow table
+	expenses=db.relationship("Expense",backref=db.backref("accounts",lazy="joined"),cascade='all, delete',lazy="dynamic")	#link to Expense table
 	
 		
 	'''account class'''
@@ -167,7 +167,8 @@ class CashFlow(db.Model):
 	recurRate=db.Column(db.Integer)
 	recurEnd=db.Column(db.DateTime)
 	estimate=db.Column(db.Boolean)	#is the cashflow an estimate or known value
-	expenses=db.relationship("Expense",backref=db.backref("cashflows",lazy="joined"),lazy="dynamic")	#link to expenses table
+	expenses=db.relationship("Expense",backref=db.backref("cashflows",lazy="joined"),\
+		cascade="all, delete",lazy="dynamic")	#link to expenses table
 		
 	def __init__(self,account_id,title,value,date=datetime.datetime.today(),recurType="Day",recurRate=1, 
 	recurEnd=datetime.datetime.today()):

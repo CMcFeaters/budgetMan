@@ -3,7 +3,7 @@
 #uses flask to create working page
 
 from budg_functions import delAccount, delCashFlow
-from budg_tables import Account, CashFlow, Expense, Actual, Transfer, create_a_thing
+from budg_tables import Account, CashFlow, Expense, Transfer, create_a_thing
 import forms 
 from appHolder import db, app
 import datetime
@@ -250,13 +250,14 @@ def cfBreakdown(id,accID):
 	if the cashflow is an estimate allows addition of actual values
 	'''
 	cfData=CashFlow.query.filter_by(id=id).first()
+	expData=Expense.query.filter_by(cf_id=id).all()
 	#need to be able to generate a hyperlink which opens a form to edit/add actual data
 	#form will send data to adActual, which will create the actual and redirect here
 	'''
 	if False==True:
 		return redirect(url_for('budg_account_data',acData=accID))
 		'''
-	return render_template('budg_cfBreakdown.html',cfData=cfData)
+	return render_template('budg_cfBreakdown.html',cfData=cfData, expData=expData)
 	
 @app.route('/displayAccount/<acData>', methods=['GET','POST'])
 @app.route('/displayAccount', methods=['GET','POST'])
@@ -270,21 +271,15 @@ def displayAccount(acData):
 		acData=ddList[0]
 	else:
 		acData=Account.query.filter_by(id=acData).first()
-	#need to fix this section
-	#need to make cashflow include the expenses
-	#need to make the expenses not include the ones marked for a cashflow
+		
 	if request.method=='POST':
 		#something was posted
 		acData=Account.query.filter_by(id=request.form['account']).first()		
-		cfData=acData.cashFlows
-		expData=acData.expenses
-		(tf_in,tf_out)=acData.getTransfers()	#[(tfIn,tfOut)]
 		
-	else:
-		cfData=acData.cashFlows
-		expData=acData.expenses
-		(tf_in,tf_out)=acData.getTransfers()	#[(tfIn,tfOut)]
-		
+	cfData=acData.cashFlows
+	expData=acData.expenses.filter_by(cf_id=None)
+	(tf_in,tf_out)=acData.getTransfers()	#[(tfIn,tfOut)]
+	
 	#otherwise we return with the option to select the accoutn data
 	return render_template('budg_account_data.html',acData=acData,
 		ddList=ddList,cfData=cfData,expData=expData,
