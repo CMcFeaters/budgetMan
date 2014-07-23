@@ -43,14 +43,14 @@ def edExpense(id):
 	expData=Expense.query.filter_by(id=id).first()
 	#make form and assign default values
 	
-	form=forms.addExpenseForm(title=expData.title,entVal=expData.value,eDate=expData.date,account=expData.account_id)
+	form=forms.addExpenseForm(title=expData.title,value=expData.value,date=expData.date,account=expData.account_id)
 	form.account.choices=[(acc.id,acc.title) for acc in Account.query.order_by('title')]
 	
 	if form.validate_on_submit():
 
 		expData.title=form.title.data
-		expData.value=form.entVal.data
-		expData.entDate=form.eDate.data
+		expData.value=form.value.data
+		expData.entDate=form.date.data
 		expData.account_id=form.account.data
 		
 		db.session.add(expData)
@@ -69,7 +69,7 @@ def adExpense():
 	form.account.choices=[(acc.id,acc.title) for acc in Account.query.order_by('title')]
 	if form.validate_on_submit(): 
 		#if the form data is validated
-		create_a_thing(Expense,[form.account.data,form.title.data,form.entVal.data,form.eDate.data])
+		create_a_thing(Expense,[form.account.data,form.title.data,form.value.data,form.date.data])
 		return redirect(url_for('welcome'))
 	
 	#send in the accounts to populate the dropdown menu
@@ -243,21 +243,29 @@ def adActual(cfID):
 	
 	return redirect(url_for('cfBreakdown',id=cfData.id, accID=cfData.account_id))
 	
-@app.route('/cfBreakdown/<id><accID>',methods=['GET','POST'])
-def cfBreakdown(id,accID):
+@app.route('/cfBreakdown/<id><expID>',methods=['GET','POST'])
+def cfBreakdown(id,expID):
 	'''
 	breaksdown a cashflow into expenses
 	if the cashflow is an estimate allows addition of actual values
 	'''
-	cfData=CashFlow.query.filter_by(id=id).first()
-	expData=Expense.query.filter_by(cf_id=id).all()
-	#need to be able to generate a hyperlink which opens a form to edit/add actual data
-	#form will send data to adActual, which will create the actual and redirect here
-	'''
-	if False==True:
-		return redirect(url_for('budg_account_data',acData=accID))
-		'''
-	return render_template('budg_cfBreakdown.html',cfData=cfData, expData=expData)
+	cfData=CashFlow.query.filter_by(id=id).first() #get the cashflow data
+	expData=Expense.query.filter_by(cf_id=id).all() #get all of the expenses for the cashflow
+	form={thing.id:forms.addExpenseForm(date=thing.date,value=thing.value) for thing in expData}	#create all of our forms for the page
+	#
+	for key in form.keys():
+		if form[key].validate_on_submit():
+			#find the expense and edit the expense data
+			exp=Expense.query.filter_by(id=expID).first()
+			exp.date=cfForm.date
+			exp.value=cfForm.value
+			db.session.add(exp)
+			db.session.commit()
+			#return back to the template
+			#the forms are not being sent properly
+			return redirect(url_for('cfBreakdown',id=cfData.id, expID=exp.id))
+	
+	return render_template('budg_cfBreakdown.html',cfData=cfData, expData=expData,form=form)
 	
 @app.route('/displayAccount/<acData>', methods=['GET','POST'])
 @app.route('/displayAccount', methods=['GET','POST'])

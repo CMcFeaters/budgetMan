@@ -67,8 +67,8 @@ class addExpenseForm(Form):
 	'''adds an expense form'''
 	account=SelectField('account',coerce=int)
 	title=TextField('title',validators=[Required(),titleLengthCheck(min=3,max=15)])
-	eDate=DateField('eDate',validators=[Required()])
-	entVal=IntegerField('entVal',validators=[Required()])
+	date=DateField('date',validators=[Required()])
+	value=IntegerField('val',validators=[Required()])
 	
 class addCashFlowForm(Form):
 	account=SelectField('account',coerce=int)
@@ -78,5 +78,9 @@ class addCashFlowForm(Form):
 	eDate=DateField('eDate',validators=[Required(),before_date_check])
 	rType=SelectField('rType',choices=[('Day','Daily'),('Week','Weekly'),('Month','Monthly')],coerce=str)
 	rRate=IntegerField('rRate',validators=[Required()])
+	
+class expFlowForm(Form):
+	#a form used to modify the expenses shown in a cashflow breakdown
+	pass
 
 

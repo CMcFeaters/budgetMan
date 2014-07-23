@@ -19,7 +19,7 @@
                 + '</li><li>Estimate: ' + est.toString()
                 + ' </li><li>End Date: ' + endDate.toString() + '</li>'
                 + "<sml><a href=\"{{ url_for('deleteCashFlow',id=0,accID=0)}}\">delete</a></sml>".replace('/00','/'+cfID+accID)
-				+ " / <sml><a href=\"{{ url_for('cfBreakdown',id=0,accID=0)}}\">breakdown</a></sml>".replace('/00','/'+cfID+accID)
+				+ " / <sml><a href=\"{{ url_for('cfBreakdown',id=0,expID=0)}}\">breakdown</a></sml>".replace('/00','/'+cfID+accID)
 				+ " / <sml><a href=\"{{ url_for('edCashFlow',id=0)}}\">edit</a></sml>".replace('/0','/'+cfID);
                 //+ ;
         }
