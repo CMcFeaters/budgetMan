@@ -243,27 +243,34 @@ def adActual(cfID):
 	
 	return redirect(url_for('cfBreakdown',id=cfData.id, accID=cfData.account_id))
 	
-@app.route('/cfBreakdown/<id><expID>',methods=['GET','POST'])
-def cfBreakdown(id,expID):
+@app.route('/cfBreakdown/<id>-<i>',methods=['GET','POST'])
+def cfBreakdown(id,i):
 	'''
 	breaksdown a cashflow into expenses
 	if the cashflow is an estimate allows addition of actual values
 	'''
 	cfData=CashFlow.query.filter_by(id=id).first() #get the cashflow data
-	expData=Expense.query.filter_by(cf_id=id).all() #get all of the expenses for the cashflow
-	form={thing.id:forms.addExpenseForm(date=thing.date,value=thing.value) for thing in expData}	#create all of our forms for the page
-	#
-	for key in form.keys():
-		if form[key].validate_on_submit():
+	expData=Expense.query.filter_by(cf_id=id).order_by(Expense.date).all() #get all of the expenses for the cashflow
+	form=[forms.expFlowForm(date=thing.date,value=thing.value) for thing in expData]	#create all of our forms for the page
+	i=int(i)
+	print i
+	print len(form)
+	print len(expData)
+	print id
+	if i>=0:
+		if form[i].validate_on_submit():
 			#find the expense and edit the expense data
-			exp=Expense.query.filter_by(id=expID).first()
-			exp.date=cfForm.date
-			exp.value=cfForm.value
-			db.session.add(exp)
+			#exp=Expense.query.filter_by(id=expID).first()
+			expData[i].date=form[i].date.data
+			expData[i].value=form[i].value.data
+			db.session.add(expData[i])
 			db.session.commit()
 			#return back to the template
 			#the forms are not being sent properly
-			return redirect(url_for('cfBreakdown',id=cfData.id, expID=exp.id))
+			return redirect(url_for('cfBreakdown',id=cfData.id,i=0))
+		else:
+			print "FUCKFUCKFUCK"
+			
 	
 	return render_template('budg_cfBreakdown.html',cfData=cfData, expData=expData,form=form)
 	

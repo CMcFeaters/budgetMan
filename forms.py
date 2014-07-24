@@ -81,6 +81,7 @@ class addCashFlowForm(Form):
 	
 class expFlowForm(Form):
 	#a form used to modify the expenses shown in a cashflow breakdown
-	pass
+	date=DateField('date',validators=[Required()])
+	value=IntegerField('val',validators=[Required()])
 
 
