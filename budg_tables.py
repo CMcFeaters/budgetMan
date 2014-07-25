@@ -170,7 +170,7 @@ class CashFlow(db.Model):
 	expenses=db.relationship("Expense",backref=db.backref("cashflows",lazy="joined"),\
 		cascade="all, delete",lazy="dynamic")	#link to expenses table
 		
-	def __init__(self,account_id,title,value,date=datetime.datetime.today(),recurType="Day",recurRate=1, 
+	def __init__(self,account_id,title,value,date=datetime.datetime.today(),recurType="Day",recurRate=1,
 	recurEnd=datetime.datetime.today()):
 		'''cash flow values'''
 		self.account_id=account_id	#the account the cashflow affects
@@ -225,15 +225,19 @@ class Expense(db.Model):
 	title=db.Column(db.String)
 	value=db.Column(db.Integer)
 	date=db.Column(db.DateTime)
+	budg_id=db.Column(db.Integer,db.ForeignKey('budgets.id'))
 	#actuals=db.relationship("Actual",backref=db.backref("expenses",lazy="joined"),lazy="dynamic")	#link to actuals table
 	
-	def __init__(self,account_id,title,value,date=datetime.datetime.today(),cf_id=False):
+	def __init__(self,account_id,title,value,date=datetime.datetime.today(),cf_id=False,budg_id=False):
 		self.account_id=account_id
 		self.title=title
 		self.value=value
 		self.date=date
 		if cf_id:
 			self.cf_id=cf_id
+		
+		if budg_id:
+			self.budg_id=budg_id
 		
 	def __repr__(self):
 		return "Title: %s \nValue: %s \nDate: %s"%(self.title,self.value,self.date)
@@ -242,6 +246,24 @@ class Expense(db.Model):
 	def __iter__(self):
 		#iterate the members of cashflow
 		return iter([attr[0] for attr in inspect.getmembers(self,not inspect.ismethod) if type(attr[1])!=types.MethodType and not attr[0].startswith("_")])
+
+class Budget(db.Model):
+	'''Single expense class
+		contains
+			id=primary_key
+			title=title
+			link to expenses
+	'''
+	__tablename__="budgets"
+	
+	id=db.Column(db.Integer,primary_key=True)
+	title=db.Column(db.String)
+	expenses=db.relationship("Expense",backref=db.backref("budgets",lazy="joined"),lazy="dynamic")	#link to expenses table
+	
+	
+	def __init__(self,title):
+		self.title=title
+	
 
 class Transfer(db.Model):
 	'''transfer is an expense from one account to another

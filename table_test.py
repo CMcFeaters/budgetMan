@@ -1,7 +1,7 @@
 from appHolder import db
 import unittest, datetime, sys, os
 from random import randint
-from budg_tables import create_a_thing,Account, CashFlow, Expense, Transfer
+from budg_tables import create_a_thing,Account, CashFlow, Expense, Transfer, Budget
 
 '''this file runs some tests on the budget tables created
 '''
@@ -91,9 +91,23 @@ class test4_cashFlowTests(unittest.TestCase):
 		self.assertTrue(True)
 			
 
+class test7_checkBudgets(unittest.TestCase):
+	'''tests the budget functionality'''
+	def test001_make_budgets(self):
+		testBudg=create_a_thing(Budget,['Snacks'])
+		self.assertTrue(True)
+	
+	def test002_assign_budgets(self):
+		testBudg=Budget.query.first()
+		expData=Expense.query.first()
+		expData.budg_id=testBudg.id
+		db.session.add(expData)
+		db.session.commit()
+		self.assertTrue(expData.value==Expense.query.filter_by(budg_id=testBudg.id).first().value)
 		
 		
-class test5_checkSum(unittest.TestCase):
+	
+class test6_checkSum(unittest.TestCase):
 	'''tests run on the account to verify random things are working
 	'''
 	tomorrow=datetime.datetime.today()+datetime.timedelta(365)	#a date for summing purposes

@@ -9,8 +9,8 @@ User interface
 X-Add expenses
 X-add cashflows
 X - add transfers
--add cashflow estimate v actual
-	WORKING ON the javascripT ability to add/edit actual values
+X-add cashflow estimate v actual
+X	WORKING ON the javascripT ability to add/edit actual values
 	NEED A FORM
 
 
@@ -24,14 +24,18 @@ X-remove expenses
 X-edit account
 X-edit expenses
 X-edit cashflow estimates
--edit cashflow actuals
+X-edit cashflow actuals
 X-add transfers
 X-edit transfers
 X-remove transers
--add budget functionality
+X-add budget functionality
+	Budget added.  need to determine if i keepit or not
 
-fixed cashflows to generate expenses, need to incorporate into webpage
+Xfixed cashflows to generate expenses, need to incorporate into webpage
 Xneed to fix adding
 Xdisplay data
 Xdeleteing - expenses are orphaned, need to remove expenses with the item
-fix the breakdown section
+Xfix the breakdown section
+
+add a section to assign a new expense to a cashflow
+cashflows should have their expenses be limited to a single account

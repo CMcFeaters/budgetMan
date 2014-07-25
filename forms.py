@@ -69,6 +69,7 @@ class addExpenseForm(Form):
 	title=TextField('title',validators=[Required(),titleLengthCheck(min=3,max=15)])
 	date=DateField('date',validators=[Required()])
 	value=IntegerField('val',validators=[Required()])
+	cashflow=SelectField('cashflow',coerce=int)
 	
 class addCashFlowForm(Form):
 	account=SelectField('account',coerce=int)
