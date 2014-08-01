@@ -1,7 +1,7 @@
 from appHolder import db
 import unittest, datetime, sys, os
 from random import randint
-from budg_tables import create_a_thing,Account, CashFlow, Expense, Transfer, Budget
+from budg_tables import create_a_thing,Account, CashFlow, Expense, Transfer, BudgetTag,Master
 
 '''this file runs some tests on the budget tables created
 '''
@@ -94,11 +94,17 @@ class test4_cashFlowTests(unittest.TestCase):
 class test7_checkBudgets(unittest.TestCase):
 	'''tests the budget functionality'''
 	def test001_make_budgets(self):
-		testBudg=create_a_thing(Budget,['Snacks'])
+		oneYear=datetime.datetime.today()+datetime.timedelta(365)
+		accData=Account.query.first()
+		create_a_thing(Master,[accData.id,'Snacks',-10,datetime.datetime.today(),"Day",5,oneYear])
+		testBudg=Master.query.first()
+		testBudg.createBudgetTags()
+		for budg in testBudg.budgetTags:
+			print "Start: %s  End: %s"%(budg.sDate,budg.eDate)
 		self.assertTrue(True)
 	
 	def test002_assign_budgets(self):
-		testBudg=Budget.query.first()
+		testBudg=Master.query.first()
 		expData=Expense.query.first()
 		expData.budg_id=testBudg.id
 		db.session.add(expData)

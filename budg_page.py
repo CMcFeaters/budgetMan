@@ -3,13 +3,28 @@
 #uses flask to create working page
 
 from budg_functions import delAccount, delCashFlow
-from budg_tables import Account, CashFlow, Expense, Transfer, create_a_thing
+from budg_tables import Account, CashFlow, Expense, Transfer, create_a_thing, Master, BudgetTag
 import forms 
 from appHolder import db, app
 import datetime
-import re
 from flask import Flask, render_template,redirect,url_for, flash, request, session
 
+@app.route('/deleteCashFlow/<id>-<accID>_<name>',methods=['GET','POST'])
+@app.route('/deleteAccount/<id>-<accID>_<name>',methods=['GET','POST'])
+@app.route('/deleteTransfer/<id>-<accID>_<name>',methods=['GET','POST'])
+@app.route('/deleteExpense/<id>-<accID>_<name>',methods=['GET','POST'])
+def delete_a_thing(name,id,accID):
+	'''
+	universal delete
+	'''
+	dict={'cashflow':CashFlow,'expense':Expense,'transfer':Transfer,'account':Account,'master':Master,'budgettag':BudgetTag}
+	db.session.delete(dict[name].query.filter_by(id=id).first())
+	db.session.commit()
+	
+	if name=="account":
+		return redirect(url_for('welcome'))
+	else:
+		return redirect(url_for('displayAccount',acData='None'))
 
 @app.route('/')
 def welcome():
@@ -17,22 +32,64 @@ def welcome():
 	results=Account.query
 	return render_template("budg_welcome.html", results=results,tDate=datetime.date.today())
 	
-@app.route('/deleteAccount/<title>')
-def deleteAccount(title):
-	#standard welcome, you're logged in or you're not
-	db.session.delete(Account.query.filter_by(title=nTitle).first())
-	db.session.commit()
-	return redirect(url_for('welcome'))
+#***********ADD*********
+@app.route('/adExpense',methods=['GET','POST'])
+def adExpense():
+	'''add a single expense to an account'''
+	form=forms.addExpenseForm()	#set up theform
+	form.account.choices=[(acc.id,acc.title) for acc in Account.query.order_by('title').all()]
+	form.cashflow.choices=[(cf.id,cf.title) for cf in CashFlow.query.all()]
+	form.budget.choices=[(budg.id,budg.title) for budg in Master.query.all()]
+	form.cfOrBudg.data="none"
+	if form.validate_on_submit(): 
+		#if the form data is validated
+		create_a_thing(Expense,[form.account.data,form.title.data,form.value.data,form.date.data,form.cashflow.data,form.budget.data])
+		
+		return redirect(url_for('welcome'))
+	
+	#send in the accounts to populate the dropdown menu
+	
+	return render_template('budg_Expense.html',form=form,edAdd="add")
 
-@app.route('/deleteExpense/<id>-<accID>')
-def deleteExpense(id,accID):
-	#deletes the selected cashflow
-	db.session.delete(Expense.query.filter_by(id=id).first())
-	db.session.commit()
-	#print Account.query.filter_by(id=accID).first()
+@app.route('/adAccount',methods=['GET','POST'])
+def adAccount():
+	'''adds an account'''
+	form=forms.addAccountForm()
 
-	return redirect(url_for('displayAccount',acData=Account.query.filter_by(id=accID).all()[0].id))
+	#if request.method=='POST': 
+		#the form data has been posted
+	if form.validate_on_submit():
+		create_a_thing(Account,[form.title.data.lower(),form.entVal.data,form.entDate.data,form.entLow.data])
+		return redirect(url_for('welcome'))
+	return render_template('budg_Account.html',form=form, edAdd='add')
 
+@app.route('/adTransfer',methods=['GET','POST'])
+def adTransfer():
+	'''add a transfer to two accounts'''
+	
+	form=forms.transferForm()
+	form.f_account.choices=[(acc.id,acc.title) for acc in Account.query.order_by('title')]
+	form.t_account.choices=[(acc.id,acc.title) for acc in Account.query.order_by('title')]
+	if form.validate_on_submit(): 
+		create_a_thing(Transfer,[form.title.data,form.value.data,
+			form.f_account.data,form.t_account.data,form.date.data])
+			
+		return redirect(url_for('welcome'))
+	
+	return render_template('budg_Transfer.html',form=form,edAdd="add")
+	
+@app.route('/adCashFlow',methods=['GET','POST'])
+def adCashFlow():
+	'''add a cashflow to an account'''
+	form=forms.addCashFlowForm()
+	form.account.choices=[(acc.id,acc.title) for acc in Account.query.order_by('title')]
+	if form.validate_on_submit(): 
+		create_a_thing(CashFlow,[form.account.data,form.title.data,form.entVal.data,form.sDate.data,\
+			form.rType.data,form.rRate.data,form.eDate.data])
+		return redirect(url_for('welcome'))
+	
+	return render_template('budg_CashFlow.html',form=form,edAdd="add")
+	
 @app.route('/edExpense/<id>',methods=['GET','POST'])
 def edExpense(id):
 	'''
@@ -41,16 +98,24 @@ def edExpense(id):
 	expData=Expense.query.filter_by(id=id).first()
 	#make form and assign default values
 	
-	form=forms.addExpenseForm(title=expData.title,value=expData.value,date=expData.date,account=expData.account_id,cashFlow=expData.cf_id)
+	form=forms.addExpenseForm(title=expData.title,value=expData.value,date=expData.date,account=expData.account_id,cashflow=expData.cf_id,budget=expData.budg_id)
 	form.account.choices=[(acc.id,acc.title) for acc in Account.query.order_by('title').all()]
-	form.cashflow.choices=[(0,"None")]
-	[form.cashflow.choices.append((cf.id,cf.title)) for cf in CashFlow.query.all()]
-
+	form.cashflow.choices=[(cf.id,cf.title) for cf in CashFlow.query.filter_by(account_id=expData.id).all()]
+	form.budget.choices=[(budg.id,budg.title) for budg in Master.query.filter_by(account_id=expData.id).all()]
+	
+	#set the radio to whatever the previous value was
+	if expData.cf_id:
+		form.cfOrBudg.data='cf'
+	elif expData.budg_id:
+		form.cfOrBudg.data='budg'
+	else: form.cfOrBudg.data="none"
+		
+	#form submission info
 	if form.validate_on_submit():
 
 		db.session.delete(expData)
 		db.session.commit()
-		create_a_thing(Expense,[form.account.data,form.title.data,form.value.data,form.date.data,form.cashflow.data])
+		create_a_thing(Expense,[form.account.data,form.title.data,form.value.data,form.date.data,form.cashflow.data,form.budget.data])
 
 		flash("Expense %s Edit Success!"%expData.title)
 
@@ -58,23 +123,6 @@ def edExpense(id):
 	
 	return render_template('budg_Expense.html',expData=expData, form=form,expAdd="edit")
 
-@app.route('/adExpense',methods=['GET','POST'])
-def adExpense():
-	'''add a single expense to an account'''
-	form=forms.addExpenseForm()	#set up theform
-	form.account.choices=[(acc.id,acc.title) for acc in Account.query.order_by('title').all()]
-	form.cashflow.choices=[(0,"None")]
-	[form.cashflow.choices.append((cf.id,cf.title)) for cf in CashFlow.query.all()]
-	
-	if form.validate_on_submit(): 
-		#if the form data is validated
-		create_a_thing(Expense,[form.account.data,form.title.data,form.value.data,form.date.data,form.cashflow.data])
-		
-		return redirect(url_for('welcome'))
-	
-	#send in the accounts to populate the dropdown menu
-	
-	return render_template('budg_Expense.html',form=form,edAdd="add")
 
 @app.route('/edAccount/<id>',methods=['GET','POST'])
 def edAccount(id):
@@ -104,42 +152,7 @@ def edAccount(id):
 	
 	return render_template('budg_Account.html',accData=accData, form=form, edAdd='edit')
 
-@app.route('/adAccount',methods=['GET','POST'])
-def adAccount():
-	'''adds an account'''
-	form=forms.addAccountForm()
 
-	#if request.method=='POST': 
-		#the form data has been posted
-	if form.validate_on_submit():
-		create_a_thing(Account,[form.title.data.lower(),form.entVal.data,form.entDate.data,form.entLow.data])
-		return redirect(url_for('welcome'))
-	return render_template('budg_Account.html',form=form, edAdd='add')
-
-@app.route('/adTransfer',methods=['GET','POST'])
-def adTransfer():
-	'''add a transfer to two accounts'''
-	
-	form=forms.transferForm()
-	form.f_account.choices=[(acc.id,acc.title) for acc in Account.query.order_by('title')]
-	form.t_account.choices=[(acc.id,acc.title) for acc in Account.query.order_by('title')]
-	if form.validate_on_submit(): 
-		create_a_thing(Transfer,[form.title.data,form.value.data,
-			form.f_account.data,form.t_account.data,form.date.data])
-			
-		return redirect(url_for('welcome'))
-	
-	return render_template('budg_Transfer.html',form=form,edAdd="add")
-	
-@app.route('/deleteTransfer/<id>-<accID>')
-def deleteTransfer(id,accID):
-	#deletes the selected transfer
-	
-	db.session.delete(Transfer.query.filter_by(id=id).first())
-	db.session.commit()
-	
-	return redirect(url_for('displayAccount',acData=Account.query.filter_by(id=accID).all()[0].id))
-	
 @app.route('/edTransfer/<id>',methods=['GET','POST'])
 def edTransfer(id):
 	'''this should use add account template with filled in values'''
@@ -168,25 +181,8 @@ def edTransfer(id):
 	
 	return render_template('budg_Transfer.html',form=form,edAdd="edit", tfData=tfData)
 
-@app.route('/adCashFlow',methods=['GET','POST'])
-def adCashFlow():
-	'''add a cashflow to an account'''
-	form=forms.addCashFlowForm()
-	form.account.choices=[(acc.id,acc.title) for acc in Account.query.order_by('title')]
-	if form.validate_on_submit(): 
-		create_a_thing(CashFlow,[form.account.data,form.title.data,form.entVal.data,form.sDate.data,\
-			form.rType.data,form.rRate.data,form.eDate.data])
-		return redirect(url_for('welcome'))
-	
-	return render_template('budg_CashFlow.html',form=form,edAdd="add")
 
-@app.route('/deleteCashFlow/<id>-<accID>')
-def deleteCashFlow(id,accID):
-	#deletes the selected cashflow
-	db.session.delete(CashFlow.query.filter_by(id=id).first())
-	db.session.commit()
-	
-	return redirect(url_for('displayAccount',acData=Account.query.filter_by(id=accID).all()[0].id))
+
 	
 @app.route('/edCashFlow/<id>',methods=['GET','POST'])
 def edCashFlow(id):
@@ -224,17 +220,6 @@ def edCashFlow(id):
 	
 	return render_template('budg_CashFlow.html',cfData=cfData, form=form,edAdd="edit")
 
-@app.route('/adActual/<cfID>',methods=['POST'])
-def adActual(cfID):
-	'''
-	an internal method to create an actual value
-	creates the actual and returns to the list
-	'''
-	cfData=CashFlow.query.filter_by(id=cfID).first()
-	#here is where we will make the new or edit the existing actual data
-	
-	return redirect(url_for('cfBreakdown',id=cfData.id, accID=cfData.account_id))
-	
 @app.route('/cfBreakdown/<id>-<i>',methods=['GET','POST'])
 def cfBreakdown(id,i):
 	'''
@@ -280,13 +265,14 @@ def displayAccount(acData):
 		acData=Account.query.filter_by(id=request.form['account']).first()		
 		
 	cfData=acData.cashFlows
-	expData=acData.expenses.filter_by(cf_id=None)
+	expData=acData.expenses.filter_by(cf_id=None, budg_id=None)
+	budgData=acData.masters
 	(tf_in,tf_out)=acData.getTransfers()	#[(tfIn,tfOut)]
 	
 	#otherwise we return with the option to select the accoutn data
 	return render_template('budg_account_data.html',acData=acData,
 		ddList=ddList,cfData=cfData,expData=expData,
-		tf_in=tf_in, tf_out=tf_out,tDate=datetime.date.today())
+		tf_in=tf_in, tf_out=tf_out,tDate=datetime.date.today(),budgData=budgData)
 
 #simple python scripts made part of jinja template
 @app.template_test('less10')

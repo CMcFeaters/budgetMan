@@ -61,7 +61,8 @@ class Account(db.Model):
 	lowVal=db.Column(db.Integer)
 	cashFlows=db.relationship("CashFlow",backref=db.backref("accounts",lazy="joined"), cascade='all, delete',lazy="dynamic")	#link to cashflow table
 	expenses=db.relationship("Expense",backref=db.backref("accounts",lazy="joined"),cascade='all, delete',lazy="dynamic")	#link to Expense table
-	
+	budgets=db.relationship("BudgetTag",backref=db.backref("accounts",lazy="joined"),cascade='all, delete',lazy="dynamic")	#link to Expense table
+	masters=db.relationship("Master",backref=db.backref("accounts",lazy="joined"),cascade='all, delete',lazy="dynamic")	#link to Expense table
 		
 	'''account class'''
 	def __init__(self,title,entVal,entDate=datetime.datetime.today(),lowVal=0):
@@ -134,7 +135,6 @@ class Account(db.Model):
 	def getDateValue(self,endDate=datetime.datetime.today()):
 		'''returns a value containing the $ value of an account including all expenses up to endDate from entDate'''
 		return self.entVal+self.getExpenseValues(endDate)+self.getTransferValues()[0]+self.getTransferValues()[1]
-	
 		
 	def __repr__(self):
 		return "Title: %s \nValue: %s \nDate: %s\n Current Value: %s"%(self.title,self.entVal,self.entDate, self.getDateValue())
@@ -145,17 +145,7 @@ class Account(db.Model):
 class CashFlow(db.Model):
 	'''cashFlow class
 		This class/table is to capture all cashflow data related to an account.
-		*Note: because some cashflows will affect multiple accoutns (paying a credit card account), a 
-				the process for creating the cashflow should include the option to create 2 identical cashflows
-				affecting the different accoutns
-		Cashflows can be recurring (they happen on a periodic basis) or single.  they have a value, an entry date and
-		can be estimates if total is not known (ex: grocery budget)
-		functions:
-		createSeries-
-			this expands a recurring payment into a series of individual paymnets based on type.  output is an array
-		popSeries-
-			this function takes in a cashflow and returns a tuple containing the first amount of the series and the remainder of teh series.
-			this is designed to be used to convert estimated values to real values
+		this is a constant thing like rent
 	'''
 	__tablename__="cashflows"
 	id=db.Column(db.Integer,primary_key=True)
@@ -166,7 +156,6 @@ class CashFlow(db.Model):
 	recurType=db.Column(db.String) #Day, Month, Week
 	recurRate=db.Column(db.Integer)
 	recurEnd=db.Column(db.DateTime)
-	estimate=db.Column(db.Boolean)	#is the cashflow an estimate or known value
 	expenses=db.relationship("Expense",backref=db.backref("cashflows",lazy="joined"),\
 		cascade="all, delete",lazy="dynamic")	#link to expenses table
 		
@@ -201,6 +190,15 @@ class CashFlow(db.Model):
 		elif self.recurType=="Month":
 			series=[create_a_thing(Expense,[self.account_id,self.title,self.value,pDate,self.id])
 			for pDate in cfRange if ((pDate.month-self.date.month))%(self.recurRate)==0 and pDate.day==self.date.day]
+	
+	def getFlow(self):
+		'''
+		get's the daily value of the cashflow
+		'''
+		val=0
+		for thing in self.expenses:
+			val+=thing.value
+		return int(val/int((self.recurEnd-self.date).days))
 		
 	def __repr__(self):
 		return "Title: %s \nValue: %s \nRate: %s %s"%(self.title,self.value, self.recurRate,self.recurType)
@@ -208,7 +206,8 @@ class CashFlow(db.Model):
 	def __iter__(self):
 		#iterate the members of cashflow
 		return iter([attr[0] for attr in inspect.getmembers(self,not inspect.ismethod) if type(attr[1])!=types.MethodType and not attr[0].startswith("_")])
-	
+
+		
 class Expense(db.Model):
 	'''Single expense class
 		Contains the following properties-
@@ -247,23 +246,92 @@ class Expense(db.Model):
 		#iterate the members of cashflow
 		return iter([attr[0] for attr in inspect.getmembers(self,not inspect.ismethod) if type(attr[1])!=types.MethodType and not attr[0].startswith("_")])
 
-class Budget(db.Model):
-	'''Single expense class
-		contains
-			id=primary_key
-			title=title
-			link to expenses
+class Master(db.Model):
+	'''cashFlow class
+		This class/table is to capture all cashflow data related to an account.
+		this is a constant thing like rent
+	'''
+	__tablename__="masters"
+	id=db.Column(db.Integer,primary_key=True)
+	account_id=db.Column(db.Integer,db.ForeignKey('accounts.id'))
+	title=db.Column(db.String)	
+	value=db.Column(db.Integer)
+	date=db.Column(db.DateTime)
+	recurType=db.Column(db.String) #Day, Month, Week
+	recurRate=db.Column(db.Integer)
+	recurEnd=db.Column(db.DateTime)
+	budgetTags=db.relationship("BudgetTag",backref=db.backref("masters",lazy="joined"),\
+		cascade="all, delete",lazy="dynamic")	#link to expenses table
+		
+	def __init__(self,account_id,title,value,date=datetime.datetime.today(),recurType="Day",recurRate=1,
+	recurEnd=datetime.datetime.today()):
+		'''cash flow values'''
+		self.account_id=account_id	#the account the cashflow affects
+		self.title=title
+		self.value=value
+		self.date=date
+		self.recurType=recurType	#can be false (non-recurring), Day, Month, Week
+		self.recurRate=recurRate	#number or recurtypes between recurrence
+		self.recurEnd=recurEnd		#date recurrence ends
+
+	def createBudgetTags(self):
+		#generates the expense tables
+		
+		#delete the existing budgetTags
+		[db.session.delete(thing) for thing in BudgetTag.query.filter_by(master_id=self.id).all()]
+		db.session.commit()
+		
+		#creates all new expenses which are linked to the cashflow
+		budgRange=dateRange(self.date,self.recurEnd)
+		
+		#create a list of start dates depending on the recurRate
+		if self.recurType=="Day" and self.recurRate>0:
+			sDates=[pDate for pDate in budgRange if ((pDate-self.date).days)%self.recurRate==0]
+		elif self.recurType=="Week":
+			sDates=[pDate for pDate in budgRange if ((pDate-self.date).days)%(self.recurRate*7)==0]
+		elif self.recurType=="Month":
+			sDates=[pDate for pDate in budgRange if ((pDate.month-self.date.month))%(self.recurRate)==0 and pDate.day==self.date.day]
+		
+		#use the start dates to create the budget dates useing the
+		budgDates=[]
+		for i in range(0,len(sDates)-1):
+			budgDates.append((sDates[i],sDates[i+1]-datetime.timedelta(1)))
+		
+		#create all of the budgetTags
+		[create_a_thing(BudgetTag,[self.account_id,self.id,self.title,self.value,sDate[0],sDate[1]]) for sDate in budgDates]
+
+	
+class BudgetTag(db.Model):
+	'''A container/label for expenses
+		this is used for individual budgets and is generated by the master budget table
+		expenses are assigned to this budget
 	'''
 	__tablename__="budgets"
 	
 	id=db.Column(db.Integer,primary_key=True)
+	account_id=db.Column(db.Integer,db.ForeignKey('accounts.id'))
+	master_id=db.Column(db.Integer, db.ForeignKey('masters.id'))
 	title=db.Column(db.String)
+	value=db.Column(db.Integer)
+	sDate=db.Column(db.DateTime)
+	eDate=db.Column(db.DateTime)
 	expenses=db.relationship("Expense",backref=db.backref("budgets",lazy="joined"),lazy="dynamic")	#link to expenses table
 	
-	
-	def __init__(self,title):
+	def __init__(self,account_id,master_id,title,value,sDate,eDate):
+		self.account_id=account_id
+		self.master_id=master_id
 		self.title=title
-	
+		self.value=value
+		self.sDate=sDate
+		self.eDate=eDate
+		
+	def getValue():
+		#returns the total value of all expenses listed under the budget
+		val=0
+		for exp in self.expenses:
+			val+=exp.value
+		return val
+		
 
 class Transfer(db.Model):
 	'''transfer is an expense from one account to another

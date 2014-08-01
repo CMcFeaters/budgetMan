@@ -1,10 +1,9 @@
 #forms.py
 '''this will store our forms'''
 from flask_wtf import Form
-from wtforms import TextField, BooleanField, IntegerField, DateField, FormField, SelectField
+from wtforms import TextField, BooleanField, IntegerField, DateField, FormField, SelectField, RadioField
 from wtforms.validators import Required, ValidationError, Optional
-from appHolder import db
-from budg_tables import Account, CashFlow
+from budg_tables import Account, CashFlow, Master
 import datetime
 
 def unique_title(table):
@@ -47,7 +46,21 @@ def notDuplicate(form, field):
 	'''
 	if form.t_account.data==form.f_account.data:
 		raise (ValidationError('FROM and TO accounts cannot be the same'))
-
+		
+def withinSelectedAccount(table):
+	'''
+	verifies the selected cashflow is contained within the selected account
+	'''
+	print '0'
+	def _accountCheck(form,field):
+		print '1'
+		if (form.cfOrBudg.data=='cf'and table==CashFlow) or (form.cfOrBudg.data=='budg' and table==Master):
+			print '2'
+			if (table.query.filter_by(id=field.data).first().account_id)!=(form.account.data):
+				print '3'
+				raise (ValidationError('Not in Account %s'%(Account.query.filter_by(id=form.account.data).first().title)))
+	return _accountCheck
+				
 class transferForm(Form):
 	#a form for adding accounts
 	title=TextField('title',validators=[Required()])
@@ -69,7 +82,9 @@ class addExpenseForm(Form):
 	title=TextField('title',validators=[Required(),titleLengthCheck(min=3,max=15)])
 	date=DateField('date',validators=[Required()])
 	value=IntegerField('val',validators=[Required()])
-	cashflow=SelectField('cashflow',coerce=int)
+	cfOrBudg=RadioField('cfOrBudg', choices=[('none','None'),('cf','CashFlow'),('budg','Budget')])
+	cashflow=SelectField('cashflow',coerce=int,validators=[withinSelectedAccount(CashFlow)])
+	budget=SelectField('budget',coerce=int,validators=[withinSelectedAccount(Master)])
 	
 class addCashFlowForm(Form):
 	account=SelectField('account',coerce=int)
@@ -84,5 +99,13 @@ class expFlowForm(Form):
 	#a form used to modify the expenses shown in a cashflow breakdown
 	date=DateField('date',validators=[Required()])
 	value=IntegerField('val',validators=[Required()])
-
+	
+class addBudget(Form):
+	account=SelectField('account',coerce=int)
+	title=TextField('title',validators=[Required()])
+	entVal=IntegerField('entVal',validators=[Required()])
+	sDate=DateField('sDate',validators=[Required()])
+	eDate=DateField('eDate',validators=[Required(),before_date_check])
+	rType=SelectField('rType',choices=[('Day','Daily'),('Week','Weekly'),('Month','Monthly')],coerce=str)
+	rRate=IntegerField('rRate',validators=[Required()])
 

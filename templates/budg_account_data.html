@@ -7,18 +7,18 @@
         removes all inner html from ul
         
         */
-    function show_cfData(cfID,accID, value,rRate,rType,est,endDate) {
+    function show_cfData(cfID,accID, value,rRate,rType,endDate) {
         var list = document.getElementById("cf_"+cfID);
         //alert(list.innerHTML);
 
         if (list.innerHTML == "") {
             //fill in 
-            //alert("<sml><a href=\"{{ url_for('deleteCashFlow',id="+cfID+",accID=" + accID + ") }}\">delete</a></sml>");
+
             list.innerHTML = '<li>Value: ' + value + '</li>'
                 + ' </li><li>Every: ' + rRate.toString() + ' ' + rType.toString()
                 + '</li><li>Estimate: ' + est.toString()
                 + ' </li><li>End Date: ' + endDate.toString() + '</li>'
-                + "<sml><a href=\"{{ url_for('deleteCashFlow',id=0,accID=0)}}\">delete</a></sml>".replace('/0-0','/'+cfID+"-"+accID)
+                + "<sml><a href=\"{{ url_for('delete_a_thing',id=0,accID=0,name=0)}}\">delete</a></sml>".replace('/0-0_0','/'+cfID+"-"+accID+"_cashflow")
 				+ " / <sml><a href=\"{{ url_for('cfBreakdown',id=0, i=0)}}\">breakdown</a></sml>".replace('/0-0','/'+cfID+"-0")
 				+ " / <sml><a href=\"{{ url_for('edCashFlow',id=0)}}\">edit</a></sml>".replace('/0','/'+cfID);
                 //+ ;
@@ -28,6 +28,22 @@
         }
     }
 
+    function show_budgData(budgID,accID, value,recurType,recurRate) {
+        var list = document.getElementById("budg_"+budgID);
+        //alert(list.innerHTML);
+
+        if (list.innerHTML == "") {
+
+            list.innerHTML = '<li>Value: ' + value.toString() + '</li>'
+                + ' </li><li>Every : ' + recurRate + ' ' + recurType.toString()+"'s";
+                
+
+        }
+        else {
+            list.innerHTML="";
+        }
+    }
+	
     function show_expData(expID,accID,value,eDate) {
         var list = document.getElementById("exp_"+expID);
         //alert(list.innerHTML);
@@ -36,7 +52,7 @@
             
             list.innerHTML = '<li>Value: ' + value + '</li>'
                 + ' </li><li>Date: ' + eDate.toString() + '</li>'               
-			    + "<sml><a href=\"{{ url_for('deleteExpense',id=0,accID=0)}}\">delete</a></sml>".replace('/0-0','/'+expID+"-"+accID)
+			    + "<sml><a href=\"{{ url_for('delete_a_thing',id=0,accID=0,name=0)}}\">delete</a></sml>".replace('/0-0_0','/'+expID+"-"+accID+"_expense")
 			    + " / <sml><a href=\"{{ url_for('edExpense',id=0)}}\">edit</a></sml>".replace('/0','/'+expID);
         }
         else {
@@ -56,7 +72,7 @@
             list.innerHTML = '<li>Value: ' + value + '</li>'
                 + ' </li><li>'+fromTo+other_account + '</li>'
 				+ ' </li><li>Date: ' + date.toString() + '</li>'
-			    + "<sml><a href=\"{{ url_for('deleteTransfer',id=0,accID=0)}}\">delete</a></sml>".replace('/0-0','/'+tfID+"-"+accID)
+			    + "<sml><a href=\"{{ url_for('delete_a_thing',id=0,accID=0,name=0)}}\">delete</a></sml>".replace('/0-0_0','/'+tfID+"-"+accID+"_transfer")
 			    + " / <sml><a href=\"{{ url_for('edTransfer',id=0)}}\">edit</a></sml>".replace('/0','/'+tfID);
         }
         else {
@@ -64,7 +80,7 @@
         }
 }
 </script>
-
+ 
 
 <fieldset><center><a href="{{ url_for('welcome') }}">Home</a> </center></fieldset>
 <!--ADD Select Account-->
@@ -93,10 +109,10 @@
     As of: {{tDate}}
     </ul>
 
-<!--Display Cashflow Data-->
-    CashFlows:<br>
+	<!--Display Cashflow Data-->
+	CashFlows:<br>
         {% for cf in cfData %}
-        ><a href="javascript:show_cfData('{{cf.id}}','{{cf.account_id}}','{{cf.value}}','{{cf.recurRate}}','{{cf.recurType}}','{{cf.estimate}}','{{cf.recurEnd.date()}}');">{{cf.title}}</a><br>
+        ><a href="javascript:show_cfData('{{cf.id}}','{{cf.account_id}}','{{cf.value}}','{{cf.recurRate}}','{{cf.recurType}}','{{cf.recurEnd.date()}}');">{{cf.title}}</a><br>
         <ul id="cf_{{cf.id}}"></ul>
 
         {% else %}
@@ -104,6 +120,17 @@
 
         {% endfor %}
 
+<!--Display Budget Data-->
+    Budget:<br>
+        {% for budg in budgData %}
+        ><a href="javascript:show_budgData('{{budg.id}}','{{budg.account_id}}','{{budg.value}}','{{budg.recurType}}','{{budg.recurRate}}');">{{budg.title}}</a><br>
+        <ul id="budg_{{budg.id}}"></ul>
+
+        {% else %}
+            <em>Nothing to report chief</em></li><br>
+
+        {% endfor %}
+		
 <!--Display Expenses Data-->
     Expenses:<br>
     {% for exp in expData %}
