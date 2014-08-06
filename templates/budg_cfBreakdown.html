@@ -1,0 +1,47 @@
+{% extends "budg_layout.html" %}
+{% block body %}
+
+<!--Display a cashflow in brokendown form-->
+<script type="text/javascript">
+
+    function actualEntry(expID) {
+        var item = document.getElementById("cf_"+expID);
+		//issue with using a dict for the forms
+		if (item.style.visibility=="visible"){
+		//make visible
+			item.style.visibility="hidden";
+        }
+        else {
+		//make hidden
+            item.style.visibility="visible";
+        }
+    }
+</script>
+
+<fieldset><center><a href="{{ url_for('welcome') }}">Home</a> </center></fieldset>
+
+<fieldset>
+<legend>CashFlow {{cfData.title}} Breakdown</legend>
+
+{% for i in range(0,expData|length) %}
+	<li><a href="javascript:actualEntry('{{expData[i].id}}')">Date: {{expData[i].date.date()}} Cost: {{expData[i].value}}</a>
+	<tagged id="cf_{{expData[i].id}}"><sml><a href="{{ url_for('edExpense',id=expData[i].id)}}">edit</a></sml>
+	<form name=editExpense action="{{ url_for('cfBreakdown',id=cfData.id,i=i) }}" method=POST>
+	
+	{{form[i].hidden_tag()}}
+	Date<sml> (YYYY-MM-DD)</sml>: {% for error in form[i].errors.date %}
+	<span style='color: red;'>[{{error}}]</span>
+	{% endfor %}
+	{{form[i].date}}
+	Value: {% for error in form[i].errors.value %} 
+	<span style='color: red;'>[{{error}}]</span>{% endfor %}
+	{{form[i].value}}<input type=submit value="Submit" name="Submit">
+	</form>
+	</tagged>
+{% endfor %}
+
+<!--i need to hide all of the items first-->
+<br>
+</fieldset>
+
+{% endblock %} 

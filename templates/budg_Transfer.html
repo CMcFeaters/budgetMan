@@ -1,0 +1,49 @@
+{% extends "budg_layout.html" %}
+{% block body %}
+
+<!--ADD IDEA-->
+
+<fieldset><center><a href="{{ url_for('welcome') }}">Home</a> </center></fieldset>
+{% if edAdd=="add" %}
+	<form name=addTransfer action="{{ url_for('adTransfer') }}" method=POST>
+	<fieldset>
+	<legend>Add New Transfer</legend>
+{% else %}
+	<form name=editTransfer action="{{ url_for('edTransfer',id=tfData.id) }}" method=POST>
+	<fieldset>
+	<legend>Editing Transfer {{tfData.title}}</legend>
+{% endif %}
+{{form.hidden_tag()}}
+
+
+Title:<sml>3-15 characters</sml>{% for error in form.errors.title %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+{{form.title(size=20)}}<br>
+
+
+Amount: {% for error in form.errors.value %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+{{form.value(size=10)}}<br>
+
+
+Date<sml> (YYYY-MM-DD)</sml>: {% for error in form.errors.date %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+{{form.date}}<br>
+
+From Account: {{form.f_account}}{% for error in form.errors.f_account %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+<br>
+To Account: {{form.t_account}}{% for error in form.errors.t_account %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+<br>
+<br>
+<dt><input type=submit value="Submit" name="Submit"><input type=reset value="Clear" name="Clear">
+</fieldset>
+</form>
+
+{% endblock %} 

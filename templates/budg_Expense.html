@@ -1,0 +1,61 @@
+{% extends "budg_layout.html" %}
+{% block body %}
+
+<!--ADD IDEA-->
+
+
+<fieldset><center><a href="{{ url_for('welcome') }}">Home</a> </center></fieldset>
+{% if edAdd=="add" %}
+	<form name=addExpense action="{{ url_for('adExpense') }}" method=POST>
+	<fieldset>
+	<legend>Add Expense</legend>
+{% else %}
+	<form name=editExpense action="{{ url_for('edExpense',id=expData.id) }}" method=POST>
+	<fieldset>
+	<legend>Editing a {{expData.title}}</legend>
+{% endif %}
+{{form.hidden_tag()}}
+
+
+Title:{% for error in form.errors.title %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+{{form.title(size=20)}}<br>
+
+Account: {{form.account}}
+<br>
+
+Amount: {% for error in form.errors.value %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+{{form.value(size=10)}}<br>
+
+
+Date<sml> (YYYY-MM-DD)</sml>: {% for error in form.errors.entDate %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+{{form.date}}<br>
+
+{% for subfield in form.cfOrBudg %}
+<tr>
+	<td> {{subfield}}{{subfield.label}}</td>
+</tr>
+{%endfor%}
+<br>
+
+Cashflow: {{form.cashflow}} {% for error in form.errors.cashflow %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}
+
+Budget: {{form.budget}} {% for error in form.errors.budget %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br> 
+
+<br>
+<dt><input type=submit value="Submit" name="Submit"><input type=reset value="Clear" name="Clear">
+</fieldset>
+</form>
+
+</fieldset>
+</form>
+{% endblock %} 

@@ -71,6 +71,28 @@ class Account(db.Model):
 		self.entDate=entDate
 		self.lowVal=lowVal
 	
+	def getBudgets(self,endDate=datetime.datetime.today(),startDate=entDate):
+		'''
+		returns a list of budgets associated with this account
+		'''
+		return [budg for budg in self.budgets.all() if budg.eDate.date()<=endDate.date() and budg.sDate.date()>=startDate.date()]
+	
+	def getBudgetValues(self,endDate=datetime.datetime.today(),startDate=False):
+		'''
+		gets the value all of the expenses between the two dates given
+		defaults to entDate if startdate isn't given
+		'''
+		if not startDate: startDate=self.entDate
+		budgValue=0
+		print endDate
+		print startDate
+		print self.getBudgets(endDate,startDate)
+		#not returning all of the linked budgets
+		for budget in self.getBudgets(endDate,startDate):
+			if budget.expenses.all()==[]:
+				budgValue+=budget.value	#only count budgets that do not have expenses associated with them, expenses are picked up in get expenses
+		return budgValue
+	
 	def getExpenses(self,endDate=datetime.datetime.today(),startDate=entDate):
 		'''
 		returns a list of expenses associated with this account
@@ -84,6 +106,7 @@ class Account(db.Model):
 		'''
 		if not startDate: startDate=self.entDate
 		expValue=0
+		
 		for expense in self.getExpenses(endDate,startDate):
 			expValue+=expense.value
 		return expValue
@@ -134,7 +157,7 @@ class Account(db.Model):
 		
 	def getDateValue(self,endDate=datetime.datetime.today()):
 		'''returns a value containing the $ value of an account including all expenses up to endDate from entDate'''
-		return self.entVal+self.getExpenseValues(endDate)+self.getTransferValues()[0]+self.getTransferValues()[1]
+		return self.entVal+self.getExpenseValues(endDate)+self.getTransferValues()[0]+self.getTransferValues()[1]+self.getBudgetValues()
 		
 	def __repr__(self):
 		return "Title: %s \nValue: %s \nDate: %s\n Current Value: %s"%(self.title,self.entVal,self.entDate, self.getDateValue())

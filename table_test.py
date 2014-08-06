@@ -111,6 +111,14 @@ class test7_checkBudgets(unittest.TestCase):
 		db.session.commit()
 		self.assertTrue(expData.value==Expense.query.filter_by(budg_id=testBudg.id).first().value)
 		
+	def test003_account_budgets(self):
+		accData=Account.query.first()
+		print accData.budgets.all()
+		print "MASTERS:________"
+		print accData.masters.all()
+		self.assertTrue(True)
+		
+		
 		
 	
 class test6_checkSum(unittest.TestCase):

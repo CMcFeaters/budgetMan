@@ -1,0 +1,60 @@
+{% extends "budg_layout.html" %}
+{% block body %}
+
+<!--ADD Budget-->
+
+<fieldset><center><a href="{{ url_for('welcome') }}">Home</a> </center></fieldset>
+{% if edAdd=="add" %}
+	<form name=newBudget action="{{ url_for('adBudget') }}" method=POST>
+	<fieldset>
+	<legend>Add CashFlow</legend>
+{% else %}
+	<form name=newBudget action="{{ url_for('edBudget', id=budgData.id ) }}" method=POST>
+	<fieldset>
+	<legend>Edit Budget {{budgData.title}}</legend>
+{% endif %}
+
+
+{{form.hidden_tag()}}
+
+Account: <br>
+{{form.account}}<br>
+
+Title:<sml>3-15 characters</sml>{% for error in form.errors.title %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+{{form.title(size=20)}}<br>
+
+
+Amount: {% for error in form.errors.entVal %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+{{form.entVal(size=10)}}<br>
+
+
+Start Date<sml> (YYYY-MM-DD)</sml>: {% for error in form.errors.sDate %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+{{form.sDate}}<br>
+
+End Date<sml> (YYYY-MM-DD)</sml>: {% for error in form.errors.eDate %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+{{form.eDate}}<br>
+
+Recurring Type: {% for error in form.errors.rType %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}<br>
+{{form.rType}}<br>
+
+Recur Rate: {% for error in form.errors.rRate %}
+<span style='color: red;'>[{{error}}]</span>
+{% endfor%}
+{{form.rRate}}<br>
+
+<br>
+<input type=submit value="Submit" name="Submit"><input type=reset value="Clear" name="Clear">
+</fieldset>
+</form>
+
+{% endblock %} 

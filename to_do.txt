@@ -38,7 +38,6 @@ Xfix the breakdown section
 Xadd a section to assign a new expense to a cashflow
 Xcashflows should have their expenses be limited to a single account
 
-removing redundant code and replacing with functions.  currently can't get app.rout... toexecute a function
 
 XAdding a budget
 	title: Entertainment
@@ -63,4 +62,11 @@ Recommended Analysis:
 	Account values over a time period
 	graph
 
-WORKING ON BUDGET DATA DISPLAY SECTION.  NEED TO FINISH IRONING OUT HOW BUDGETS ARE CREATED< DELETED, displayed, etc.  Also need to verify deletes work under new single function.
+WORKING ON BUDGET DATA DISPLAY SECTION.  NEED TO FINISH IRONING OUT HOW BUDGETS ARE 
+XCREATED< 
+XDELETED, 
+displayed, 
+XEdited
+XAccounted for in account - currently not returning all of the linked budget tags.  the idea is return the appropriate value unless there are expenses listed with the tag.  then return those.
+
+Probalby do a dynamic list so that expenses can only be budgetd to a budget in that account

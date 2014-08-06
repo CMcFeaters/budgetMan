@@ -13,6 +13,7 @@ from flask import Flask, render_template,redirect,url_for, flash, request, sessi
 @app.route('/deleteAccount/<id>-<accID>_<name>',methods=['GET','POST'])
 @app.route('/deleteTransfer/<id>-<accID>_<name>',methods=['GET','POST'])
 @app.route('/deleteExpense/<id>-<accID>_<name>',methods=['GET','POST'])
+@app.route('/deleteMaster/<id>-<accID>_<name>',methods=['GET','POST'])
 def delete_a_thing(name,id,accID):
 	'''
 	universal delete
@@ -90,6 +91,21 @@ def adCashFlow():
 	
 	return render_template('budg_CashFlow.html',form=form,edAdd="add")
 	
+@app.route('/adBudget',methods=['GET','POST'])
+def adBudget():
+	'''add a cashflow to an account'''
+	form=forms.addBudget()
+	form.account.choices=[(acc.id,acc.title) for acc in Account.query.order_by('title')]
+	if form.validate_on_submit(): 
+		create_a_thing(Master,[form.account.data,form.title.data,form.entVal.data,form.sDate.data,\
+			form.rType.data,form.rRate.data,form.eDate.data])
+		[master.createBudgetTags() for master in Master.query.all() if master.budgetTags==[]]
+		#create all the budgettags
+		return redirect(url_for('welcome'))
+	
+	return render_template('budg_Budget.html',form=form,edAdd="add")
+	
+#*******edits******
 @app.route('/edExpense/<id>',methods=['GET','POST'])
 def edExpense(id):
 	'''
@@ -180,9 +196,6 @@ def edTransfer(id):
 		return redirect(url_for('welcome'))
 	
 	return render_template('budg_Transfer.html',form=form,edAdd="edit", tfData=tfData)
-
-
-
 	
 @app.route('/edCashFlow/<id>',methods=['GET','POST'])
 def edCashFlow(id):
@@ -194,7 +207,7 @@ def edCashFlow(id):
 	
 	form=forms.addCashFlowForm(title=cfData.title,entVal=cfData.value,sDate=cfData.date,
 	account=cfData.account_id, rType=cfData.recurType, rRate=cfData.recurRate, 
-	eDate=cfData.recurEnd, est=cfData.estimate)
+	eDate=cfData.recurEnd)
 	#add the account choices
 	form.account.choices=[(acc.id,acc.title) for acc in Account.query.order_by('title')]
 	
@@ -220,6 +233,44 @@ def edCashFlow(id):
 	
 	return render_template('budg_CashFlow.html',cfData=cfData, form=form,edAdd="edit")
 
+@app.route('/edBudget/<id>',methods=['GET','POST'])
+def edBudget(id):
+	'''
+	only called with a url link
+	'''
+	budgData=Master.query.filter_by(id=id).first()
+	#make form and assign default values
+	
+	form=forms.addBudget(title=budgData.title,entVal=budgData.value,sDate=budgData.date,
+	account=budgData.account_id, rType=budgData.recurType, rRate=budgData.recurRate, 
+	eDate=budgData.recurEnd)
+	#add the account choices
+	form.account.choices=[(acc.id,acc.title) for acc in Account.query.order_by('title')]
+	
+	if form.validate_on_submit():
+	#	assign values and submit
+		budgData.title=form.title.data
+		budgData.value=form.entVal.data
+		budgData.date=form.sDate.data
+		budgData.account_id=form.account.data
+		budgData.recurType=form.rType.data
+		budgData.recurRate=form.rRate.data
+		budgData.recurEnd=form.eDate.data
+		
+		db.session.add(budgData)
+		db.session.commit()
+		
+		#create the new budget tags
+		#need to fix this.  it will delete all expenses associated with the budget
+		budgData.createBudgetTags()
+				
+		flash("Budget %s Edit Success!"%budgData.title)
+
+		return redirect(url_for('welcome'))
+	
+	return render_template('budg_Budget.html',budgData=budgData, form=form,edAdd="edit")
+
+	
 @app.route('/cfBreakdown/<id>-<i>',methods=['GET','POST'])
 def cfBreakdown(id,i):
 	'''
@@ -246,7 +297,34 @@ def cfBreakdown(id,i):
 			
 	
 	return render_template('budg_cfBreakdown.html',cfData=cfData, expData=expData,form=form)
+
+@app.route('/budgBreakdown/<id>-<i>',methods=['GET','POST'])
+def budgBreakdown(id,i):
+	'''
+	breaksdown a budget into budgetTags
+	if the cashflow is an estimate allows addition of actual values
+	'''
+	cfData=CashFlow.query.filter_by(id=id).first() #get the cashflow data
+	expData=Expense.query.filter_by(cf_id=id).order_by(Expense.date).all() #get all of the expenses for the cashflow
+	form=[forms.expFlowForm(date=thing.date,value=thing.value) for thing in expData]	#create all of our forms for the page
+	i=int(i)
 	
+	#check the submitted form
+	if i>=0:
+		if form[i].validate_on_submit():
+			#find the expense and edit the expense data
+			#exp=Expense.query.filter_by(id=expID).first()
+			expData[i].date=form[i].date.data
+			expData[i].value=form[i].value.data
+			db.session.add(expData[i])
+			db.session.commit()
+			#return back to the template
+			#the forms are not being sent properly
+			return redirect(url_for('cfBreakdown',id=cfData.id,i=0))
+			
+	
+	return render_template('budg_cfBreakdown.html',cfData=cfData, expData=expData,form=form)
+		
 @app.route('/displayAccount/<acData>', methods=['GET','POST'])
 @app.route('/displayAccount', methods=['GET','POST'])
 def displayAccount(acData):

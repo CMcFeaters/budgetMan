@@ -51,13 +51,9 @@ def withinSelectedAccount(table):
 	'''
 	verifies the selected cashflow is contained within the selected account
 	'''
-	print '0'
 	def _accountCheck(form,field):
-		print '1'
 		if (form.cfOrBudg.data=='cf'and table==CashFlow) or (form.cfOrBudg.data=='budg' and table==Master):
-			print '2'
 			if (table.query.filter_by(id=field.data).first().account_id)!=(form.account.data):
-				print '3'
 				raise (ValidationError('Not in Account %s'%(Account.query.filter_by(id=form.account.data).first().title)))
 	return _accountCheck
 				
