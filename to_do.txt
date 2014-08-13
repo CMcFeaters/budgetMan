@@ -45,12 +45,27 @@ XAdding a budget
 	established time period: 1 week
 	backref-expenses
 
-Add budget capability
-Display budgets
-Add ability to move an expense to a budget
-Add ability to only have an expense be part of a budget or a cashflow
+XAdd budget capability
+XDisplay budgets
+XAdd ability to move an expense to a budget
+XAdd ability to only have an expense be part of a budget or a cashflow
 	has a cumulative value
 	
+
+
+
+WORKING ON BUDGET DATA DISPLAY SECTION.  NEED TO FINISH IRONING OUT HOW BUDGETS ARE 
+XCREATED< 
+XDELETED, 
+displayed, 
+XEdited
+XAccounted for in account - currently not returning all of the linked budget tags
+XExpenses linked to budgets
+Creating a universal expense
+Add links to edit budgets
+Fix budget cost/remaining
+budget expenses is super slow, need to fix that
+edit expense isn't working
 
 Begin developing data display section
 Recommended Analysis:
@@ -61,12 +76,3 @@ Recommended Analysis:
 	Account values on a datee
 	Account values over a time period
 	graph
-
-WORKING ON BUDGET DATA DISPLAY SECTION.  NEED TO FINISH IRONING OUT HOW BUDGETS ARE 
-XCREATED< 
-XDELETED, 
-displayed, 
-XEdited
-XAccounted for in account - currently not returning all of the linked budget tags.  the idea is return the appropriate value unless there are expenses listed with the tag.  then return those.
-
-Probalby do a dynamic list so that expenses can only be budgetd to a budget in that account

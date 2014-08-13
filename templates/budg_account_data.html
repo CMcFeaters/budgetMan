@@ -37,6 +37,7 @@
             list.innerHTML = '<li>Value: ' + value.toString() + '</li>'
                 + ' </li><li>Every : ' + recurRate + ' ' + recurType.toString()+"'s</li>"
 				+ "<sml><a href=\"{{ url_for('delete_a_thing',id=0,accID=0,name=0)}}\">delete</a></sml>".replace('/0-0_0','/'+budgID+"-"+accID+"_master")
+				+ " / <sml><a href=\"{{ url_for('budgBreakdown',id=0)}}\">breakdown</a></sml>".replace('/0','/'+budgID)
 				+ " / <sml><a href=\"{{ url_for('edBudget',id=0)}}\">edit</a></sml>".replace('/0','/'+budgID);	
 				
                 

@@ -27,6 +27,27 @@ def delete_a_thing(name,id,accID):
 	else:
 		return redirect(url_for('displayAccount',acData='None'))
 
+
+def ed_a_thing(id,tblName):
+	'''
+	universal editer, takes in the table and Id, returns 
+	'''
+	tableDict={'cashflow':CashFlow,'expense':Expense,'transfer':Transfer,'account':Account,'master':Master}
+	thing=tableDict[table].query.filter_by(id=id).first()
+	formDict={'cashflow':forms.addCashFlowForm,'expense':forms.addExpenseForm,'transfer':forms.transferForm,'account':forms.addAccountForm,'master':forms.addBudgetForm}
+	templateDict={'cashflow':'budg_Cashflow.html','expense':'budg_Expense.html','transfer':'budg_Transfer.html','account':'budg_Account.html','master':'budg_Master.html'}
+	form=formDict[table]
+	table=tableDict[tblName]
+
+	if form.validate_on_submit():
+		for key in thing.__dict__.keys():
+			thing[key]=form[key]
+			#need ot modify forms to match the tables
+	
+		return redirect(url_for('welcome'))
+	
+	return render_template(templateDict[table],accData=accData, form=form, edAdd='edit')
+	
 @app.route('/')
 def welcome():
 	#standard welcome, you're logged in or you're not
@@ -106,6 +127,7 @@ def adBudget():
 	return render_template('budg_Budget.html',form=form,edAdd="add")
 	
 #*******edits******
+
 @app.route('/edExpense/<id>',methods=['GET','POST'])
 def edExpense(id):
 	'''
@@ -297,33 +319,17 @@ def cfBreakdown(id,i):
 			
 	
 	return render_template('budg_cfBreakdown.html',cfData=cfData, expData=expData,form=form)
+	
 
-@app.route('/budgBreakdown/<id>-<i>',methods=['GET','POST'])
-def budgBreakdown(id,i):
+@app.route('/budgBreakdown/<id>',methods=['GET','POST'])
+def budgBreakdown(id):
 	'''
 	breaksdown a budget into budgetTags
-	if the cashflow is an estimate allows addition of actual values
+	id is the master id
 	'''
-	cfData=CashFlow.query.filter_by(id=id).first() #get the cashflow data
-	expData=Expense.query.filter_by(cf_id=id).order_by(Expense.date).all() #get all of the expenses for the cashflow
-	form=[forms.expFlowForm(date=thing.date,value=thing.value) for thing in expData]	#create all of our forms for the page
-	i=int(i)
+	budgData=BudgetTag.query.filter_by(master_id=id).all() #get the budgetTag data
 	
-	#check the submitted form
-	if i>=0:
-		if form[i].validate_on_submit():
-			#find the expense and edit the expense data
-			#exp=Expense.query.filter_by(id=expID).first()
-			expData[i].date=form[i].date.data
-			expData[i].value=form[i].value.data
-			db.session.add(expData[i])
-			db.session.commit()
-			#return back to the template
-			#the forms are not being sent properly
-			return redirect(url_for('cfBreakdown',id=cfData.id,i=0))
-			
-	
-	return render_template('budg_cfBreakdown.html',cfData=cfData, expData=expData,form=form)
+	return render_template('budg_budgBreakdown.html',budgData=budgData)
 		
 @app.route('/displayAccount/<acData>', methods=['GET','POST'])
 @app.route('/displayAccount', methods=['GET','POST'])
@@ -359,17 +365,28 @@ def less10(value):
 	return (value<10)
 app.jinja_env.tests['less10']=less10
 
+
+
 #simple python scripts made part of jinja template
 @app.template_filter('url_ext')
 def url_ext(*value):
 	'''takes in a value and dertmines if it is less than 10'''
-	print value
-	print type(value)
+
 	for thing in value:
 		for stuff in thing:
 			print stuff
 	return url_for(value[0][0],title=value[0][1])
 app.jinja_env.filters['url_ext']=url_ext
+
+
+#user defined functions
+def getValue(budget,cr):
+	#cr is determines if we are returning the cost or the remainder
+	if cr=="cost":
+		return budget.getValue()
+	else: return abs(abs(budget.getValue())-abs(budget.value))
+
+app.jinja_env.globals.update(getValue=getValue)
 
 if __name__=='__main__':
 	db.create_all()

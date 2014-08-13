@@ -84,9 +84,6 @@ class Account(db.Model):
 		'''
 		if not startDate: startDate=self.entDate
 		budgValue=0
-		print endDate
-		print startDate
-		print self.getBudgets(endDate,startDate)
 		#not returning all of the linked budgets
 		for budget in self.getBudgets(endDate,startDate):
 			if budget.expenses.all()==[]:
@@ -348,7 +345,7 @@ class BudgetTag(db.Model):
 		self.sDate=sDate
 		self.eDate=eDate
 		
-	def getValue():
+	def getValue(self):
 		#returns the total value of all expenses listed under the budget
 		val=0
 		for exp in self.expenses:
