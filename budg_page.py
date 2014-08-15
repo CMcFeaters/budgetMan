@@ -38,6 +38,8 @@ def ed_a_thing(id,tblName):
 	templateDict={'cashflow':'budg_Cashflow.html','expense':'budg_Expense.html','transfer':'budg_Transfer.html','account':'budg_Account.html','master':'budg_Master.html'}
 	form=formDict[table]
 	table=tableDict[tblName]
+	
+	#e=
 
 	if form.validate_on_submit():
 		for key in thing.__dict__.keys():
@@ -46,7 +48,9 @@ def ed_a_thing(id,tblName):
 	
 		return redirect(url_for('welcome'))
 	
-	return render_template(templateDict[table],accData=accData, form=form, edAdd='edit')
+	#need to add a method to send these variables, recommend rewriting the templats so 
+	#accData is actually just a generic data holder
+	return render_template(templateDict[table],accData=accData, form=form, edAdd='edit',tblName=tblName)
 	
 @app.route('/')
 def welcome():

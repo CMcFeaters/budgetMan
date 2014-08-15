@@ -53,10 +53,14 @@ def withinSelectedAccount(table):
 	'''
 	def _accountCheck(form,field):
 		if (form.cfOrBudg.data=='cf'and table==CashFlow) or (form.cfOrBudg.data=='budg' and table==Master):
-			if (table.query.filter_by(id=field.data).first().account_id)!=(form.account.data):
+			if (table.query.filter_by  (id=field.data).first().account_id)!=(form.account.data):
 				raise (ValidationError('Not in Account %s'%(Account.query.filter_by(id=form.account.data).first().title)))
 	return _accountCheck
-				
+	
+'''
+********the forms need to be changed so that the members are the same naming convention as the
+classes they are representing***********
+'''	
 class transferForm(Form):
 	#a form for adding accounts
 	title=TextField('title',validators=[Required()])
@@ -70,26 +74,27 @@ class addAccountForm(Form):
 	title=TextField('title',validators=[Required(),unique_title(Account)])
 	entVal=IntegerField('entVal',validators=[Required()])
 	entDate=DateField('entDate',validators=[Required()])
-	entLow=IntegerField('entLow',validators=[Optional()])
+	lowVal=IntegerField('entLow',validators=[Optional()])
 	
 class addExpenseForm(Form):
 	'''adds an expense form'''
-	account=SelectField('account',coerce=int)
+	account_id=SelectField('account',coerce=int)
 	title=TextField('title',validators=[Required(),titleLengthCheck(min=3,max=15)])
 	date=DateField('date',validators=[Required()])
 	value=IntegerField('val',validators=[Required()])
+	#cfOrBudg needs to be addresses
 	cfOrBudg=RadioField('cfOrBudg', choices=[('none','None'),('cf','CashFlow'),('budg','Budget')])
-	cashflow=SelectField('cashflow',coerce=int,validators=[withinSelectedAccount(CashFlow)])
-	budget=SelectField('budget',coerce=int,validators=[withinSelectedAccount(Master)])
+	cashflow_id=SelectField('cashflow',coerce=int,validators=[withinSelectedAccount(CashFlow)])
+	budget_id=SelectField('budget',coerce=int,validators=[withinSelectedAccount(Master)])
 	
 class addCashFlowForm(Form):
-	account=SelectField('account',coerce=int)
+	account_id=SelectField('account',coerce=int)
 	title=TextField('title',validators=[Required()])
-	entVal=IntegerField('entVal',validators=[Required()])
-	sDate=DateField('sDate',validators=[Required()])
-	eDate=DateField('eDate',validators=[Required(),before_date_check])
-	rType=SelectField('rType',choices=[('Day','Daily'),('Week','Weekly'),('Month','Monthly')],coerce=str)
-	rRate=IntegerField('rRate',validators=[Required()])
+	value=IntegerField('entVal',validators=[Required()])
+	date=DateField('sDate',validators=[Required()])
+	recurEnd=DateField('eDate',validators=[Required(),before_date_check])
+	recurType=SelectField('rType',choices=[('Day','Daily'),('Week','Weekly'),('Month','Monthly')],coerce=str)
+	recurEnd=IntegerField('rRate',validators=[Required()])
 	
 class expFlowForm(Form):
 	#a form used to modify the expenses shown in a cashflow breakdown
@@ -97,11 +102,11 @@ class expFlowForm(Form):
 	value=IntegerField('val',validators=[Required()])
 	
 class addBudget(Form):
-	account=SelectField('account',coerce=int)
+	account_id=SelectField('account',coerce=int)
 	title=TextField('title',validators=[Required()])
-	entVal=IntegerField('entVal',validators=[Required()])
-	sDate=DateField('sDate',validators=[Required()])
-	eDate=DateField('eDate',validators=[Required(),before_date_check])
-	rType=SelectField('rType',choices=[('Day','Daily'),('Week','Weekly'),('Month','Monthly')],coerce=str)
-	rRate=IntegerField('rRate',validators=[Required()])
+	value=IntegerField('entVal',validators=[Required()])
+	date=DateField('sDate',validators=[Required()])
+	redurEnd=DateField('eDate',validators=[Required(),before_date_check])
+	recurType=SelectField('rType',choices=[('Day','Daily'),('Week','Weekly'),('Month','Monthly')],coerce=str)
+	recurRate=IntegerField('rRate',validators=[Required()])
 
